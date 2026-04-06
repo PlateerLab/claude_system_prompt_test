@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 screenshot_*.png
 *.html.bak
+openclaude/

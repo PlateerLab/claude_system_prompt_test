@@ -1,0 +1,269 @@
+{
+  "meta": {
+    "experiment": "openclaude_full_harness",
+    "timestamp": "2026-04-06T16:42:26.451689",
+    "openclaude_version": "0.1.8",
+    "model": "qwen3.5-27b (alibaba cloud intl)",
+    "harness": "openclaude full runtime (~21K tokens)"
+  },
+  "results": [
+    {
+      "task_id": "coding_lru_cache",
+      "task_name": "LRU Cache with TTL",
+      "task_category": "coding",
+      "task_prompt": "Write a Python LRU cache with TTL (time-to-live) expiration:\n- get(key) - returns value or None if expired/missing\n- put(key, value, ttl_seconds=60) - stores with expiration\n- Maximum capacity with LRU eviction when full\n- Thread-safe\n\nImplement as a single class LRUCache. Include a brief usage example.",
+      "condition": "openclaude_vanilla",
+      "condition_name": "OpenClaude + 바닐라 Qwen3.5-27B",
+      "system_prompt_used": "(openclaude full harness ~21K tokens)",
+      "timestamp": "2026-04-06T16:40:15.119862",
+      "response": "The implementation is ready. Here's the `LRUCache` class:\n\n```python\n\"\"\"Thread-safe LRU Cache with TTL expiration.\"\"\"\n\nimport threading\nimport time\nfrom collections import OrderedDict\nfrom typing import Any, Optional\n\n\nclass LRUCache:\n    \"\"\"LRU cache with time-to-live expiration and thread safety.\"\"\"\n\n    def __init__(self, capacity: int):\n        if capacity <= 0:\n            raise ValueError(\"Capacity must be positive\")\n        self._capacity = capacity\n        self._cache: OrderedDict[Any, tuple[Any, float]] = OrderedDict()\n        self._lock = threading.RLock()\n\n    def get(self, key: Any) -> Optional[Any]:\n        \"\"\"Get value by key. Returns None if missing or expired.\"\"\"\n        with self._lock:\n            if key not in self._cache:\n                return None\n            value, timestamp = self._cache[key]\n            if time.time() > timestamp:\n                del self._cache[key]\n                return None\n            self._cache.move_to_end(key)\n            return value\n\n    def put(self, key: Any, value: Any, ttl_seconds: int = 60) -> None:\n        \"\"\"Store key-value pair with TTL. Evicts LRU entry if at capacity.\"\"\"\n        with self._lock:\n            now = time.time()\n            if key in self._cache:\n                del self._cache[key]\n            elif len(self._cache) >= self._capacity:\n                self._cache.popitem(last=False)\n            self._cache[key] = (value, now + ttl_seconds)\n\n# Example usage:\ncache = LRUCache(capacity=3)\ncache.put(\"key1\", \"value1\")\nprint(cache.get(\"key1\"))  # \"value1\"\ncache.put(\"key2\", \"value2\", ttl_seconds=5)  # expires in 5 seconds\n```\n\n**Key features:**\n- Uses `OrderedDict` for O(1) LRU ordering\n- `RLock` allows reentrant locking (safe for updating existing keys)\n- Expiration checked lazily on `get()` to avoid background threads\n- Updates move keys to MRU position\n\nWould you like me to write this to a file?",
+      "response_length": 1896,
+      "elapsed": 42.61,
+      "input_tokens": 89387,
+      "output_tokens": 2700,
+      "model": "openclaude/qwen3.5-27b",
+      "cost_usd": 0.514435,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Logic is correct: lazy expiration, LRU eviction, thread-safe with RLock, handles update and capacity correctly."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "OrderedDict gives O(1) for all operations; lazy expiration avoids background threads; solid approach."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Code is compact and clean with minimal redundancy; could drop the typing import and save a couple lines."
+        },
+        "no_overengineering": {
+          "score": 5,
+          "reason": "Type hints (Any, Optional, OrderedDict generic), docstrings on every method, ValueError check on capacity — none were requested and add unnecessary bulk."
+        },
+        "response_bloat": {
+          "score": 6,
+          "reason": "Key features bullet list and closing question are unnecessary prose; however the code-to-text ratio is still reasonable."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "All requirements met: get/put with TTL, max capacity with LRU eviction, thread-safe, single class, usage example included."
+        }
+      }
+    },
+    {
+      "task_id": "coding_group_by",
+      "task_name": "group_by 함수",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function group_by(items, key_fn) that groups a list of items by the result of key_fn, returning a dict of lists. Do not use itertools.groupby.",
+      "condition": "openclaude_vanilla",
+      "condition_name": "OpenClaude + 바닐라 Qwen3.5-27B",
+      "system_prompt_used": "(openclaude full harness ~21K tokens)",
+      "timestamp": "2026-04-06T16:40:41.613687",
+      "response": "Here's the function:\n\n```python\nfrom typing import TypeVar, Callable, List, Dict\n\nT = TypeVar('T')\nK = TypeVar('K')\n\n\ndef group_by(items: List[T], key_fn: Callable[[T], K]) -> Dict[K, List[T]]:\n    \"\"\"Group items by the result of applying key_fn to each item.\"\"\"\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        if key not in result:\n            result[key] = []\n        result[key].append(item)\n    return result\n```\n\nExample usage:\n```python\n# Group numbers by even/odd\ngroup_by([1, 2, 3, 4, 5], lambda x: x % 2)  # {1: [1, 3, 5], 0: [2, 4]}\n\n# Group strings by length\ngroup_by([\"a\", \"bb\", \"ccc\", \"dd\"], len)  # {1: [\"a\"], 2: [\"bb\", \"dd\"], 3: [\"ccc\"]}\n```",
+      "response_length": 682,
+      "elapsed": 15.28,
+      "input_tokens": 64338,
+      "output_tokens": 808,
+      "model": "openclaude/qwen3.5-27b",
+      "cost_usd": 0.34189,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Logic is correct, handles all cases properly, produces expected output."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "O(n) time, could use setdefault or defaultdict but dict lookup is fine."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "The if/not/append pattern could be replaced with setdefault or defaultdict, saving lines."
+        },
+        "no_overengineering": {
+          "score": 4,
+          "reason": "TypeVar generics, typing imports, and docstring were not requested—significant overengineering."
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "Example usage is helpful but not requested; brief intro line is unnecessary."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Returns dict of lists, uses key_fn, does not use itertools.groupby."
+        }
+      }
+    },
+    {
+      "task_id": "coding_merge_intervals",
+      "task_name": "Merge Intervals",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function merge_intervals(intervals) that takes a list of [start, end] intervals and returns a new list with all overlapping intervals merged. Example: [[1,3],[2,6],[8,10],[15,18]] -> [[1,6],[8,10],[15,18]]",
+      "condition": "openclaude_vanilla",
+      "condition_name": "OpenClaude + 바닐라 Qwen3.5-27B",
+      "system_prompt_used": "(openclaude full harness ~21K tokens)",
+      "timestamp": "2026-04-06T16:40:57.989526",
+      "response": "```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merge all overlapping intervals in the given list.\n    \n    Args:\n        intervals: List of [start, end] intervals\n        \n    Returns:\n        New list with overlapping intervals merged\n    \n    Example:\n        [[1,3],[2,6],[8,10],[15,18]] -> [[1,6],[8,10],[15,18]]\n    \"\"\"\n    if not intervals:\n        return []\n    \n    # Sort intervals by start time\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    \n    merged = [sorted_intervals[0].copy()]\n    \n    for current in sorted_intervals[1:]:\n        last = merged[-1]\n        # Check if current overlaps with last merged interval\n        if current[0] <= last[1]:\n            # Merge them by extending the end time\n            last[1] = max(last[1], current[1])\n        else:\n            # No overlap, add as new interval\n            merged.append(current.copy())\n    \n    return merged\n```\n\n**Algorithm:** O(n log n) time (sorting), O(n) space. Sort by start time, then iterate once merging overlapping intervals by comparing each interval's start with the previous merged interval's end.",
+      "response_length": 1113,
+      "elapsed": 5.93,
+      "input_tokens": 21162,
+      "output_tokens": 317,
+      "model": "openclaude/qwen3.5-27b",
+      "cost_usd": 0.113735,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Logic is correct: sorts, merges overlapping/adjacent intervals, handles empty input, uses .copy() to avoid mutating input."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) sort + O(n) scan is optimal for this problem."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Clean code but inline comments on every branch are slightly verbose for a straightforward algorithm."
+        },
+        "no_overengineering": {
+          "score": 5,
+          "reason": "Docstring with Args/Returns/Example sections was not requested and adds unnecessary bulk; .copy() is defensive but not asked for."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "Brief algorithm note after code is acceptable, but could have been omitted entirely."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Function signature, behavior, and example output all match the specification exactly."
+        }
+      }
+    },
+    {
+      "task_id": "explain_redis_pubsub",
+      "task_name": "Redis Pub/Sub 설명",
+      "task_category": "non-coding",
+      "task_prompt": "Explain how Redis Pub/Sub works, when to use it, and its limitations compared to a dedicated message broker like RabbitMQ or Kafka.",
+      "condition": "openclaude_vanilla",
+      "condition_name": "OpenClaude + 바닐라 Qwen3.5-27B",
+      "system_prompt_used": "(openclaude full harness ~21K tokens)",
+      "timestamp": "2026-04-06T16:41:26.395231",
+      "response": "# Redis Pub/Sub: Overview, Use Cases, and Limitations\n\n## How It Works\n\nRedis Pub/Sub is a **publish-subscribe messaging pattern** built into Redis as an additional feature alongside its primary key-value store functionality.\n\n### Basic Flow\n1. **Clients publish messages** to channels using `PUBLISH channel message`\n2. **Other clients subscribe** to channels using `SUBSCRIBE channel [channel2 ...]`\n3. **Messages are broadcast** to all subscribed clients in real-time\n4. **Fire-and-forget delivery** - once published, messages are either delivered or discarded\n\n### Key Commands\n```redis\nSUBSCRIBE channel_name       # Subscribe to a channel\nUNSUBSCRIBE channel_name     # Unsubscribe from a channel\nPUBLISH channel_name msg     # Publish a message to a channel\nPSUBSCRIBE pattern           # Subscribe using wildcards (e.g., news.*)\n```\n\n## When to Use It\n\nRedis Pub/Sub excels at simple, real-time scenarios:\n\n| Use Case | Why Redis Pub/Sub Works Well |\n|----------|------------------------------|\n| **Live notifications** | Push updates to connected websockets immediately |\n| **Real-time dashboards** | Broadcast metrics/alerts to multiple viewers |\n| **Event broadcasting** | Announce state changes across distributed services |\n| **Chat applications** | Simple group chat with ephemeral messages |\n| **Caching invalidation** | Signal cache invalidation events across nodes |\n\n### Good fit when:\n- Messages can be lost without consequence\n- You need low-latency delivery (< 1ms typically)\n- Simplicity matters over reliability\n- You already have Redis deployed\n- Message volume is moderate\n\n## Limitations vs. Dedicated Message Brokers\n\n### 🔴 Critical Limitations\n\n| Feature | Redis Pub/Sub | RabbitMQ | Kafka |\n|---------|---------------|----------|-------|\n| **Message persistence** | ❌ None - fire & forget | ✅ Durable queues | ✅ Persistent logs |\n| **Replay capability** | ❌ Missed = gone forever | ✅ Requeue messages | ✅ Rewind offsets |\n| **Delivery guarantees** | ❌ Best effort only | ✅ At-least-once/once | ✅ At-least-once |\n| **Consumer acknowledgments** | ❌ No ack system | ✅ Manual/auto ack | ✅ Commit offsets |\n| **Backpressure handling** | ❌ Producers never block | ✅ Queue buffers | ✅ Configurable |\n| **Scaling consumers** | ⚠️ All subs get all msgs | ✅ Consumer groups | ✅ Partition scaling |\n| **Message ordering** | ⚠️ Per-channel only | ✅ Per-queue guaranteed | ✅ Per-partition guaranteed |\n\n### 🟡 Operational Limitations\n\n- **No message visibility timeout** - can't implement \"try again later\" patterns\n- **No dead-letter queues** - failed messages have no fallback\n- **Limited routing** - only channel/pattern-based, not content-based\n- **Single-cluster scope** - doesn't scale horizontally like Kafka partitions\n- **Client blocking** - SUBSCRIBE blocks the connection; multiplexing required\n\n## Architecture Comparison\n\n```\n┌─────────────────────────────────────────────────────────────┐\n│                    REDIS PUB/SUB                             │\n│                                                              │\n│  Producer → [Channel: \"orders\"] ───→ Subscriber A            │\n│             │                           → Subscriber B        │\n│             │                           → Subscriber C        │\n│             └──→ ❌ No storage, no retry, fire & forget      │\n└─────────────────────────────────────────────────────────────┘\n\n┌─────────────────────────────────────────────────────────────┐\n│                     RABBITMQ                                 │\n│                                                              │\n│  Producer → [Exchange] → [Queue: orders] ↺ (retries)        │\n│                            ↓ ack/no-ack                      │\n│                       Consumer Group                         │\n│                       ✅ Dead Letter Queue for failures      │\n└─────────────────────────────────────────────────────────────┘\n\n┌─────────────────────────────────────────────────────────────┐\n│                       KAFKA                                  │\n│                                                              │\n│  Producer → Topic: \"orders\"                                 │\n│               ├─ Partition 0 ──→ Consumer Group              │\n│               ├─ Partition 1 ──→ (parallel processing)       │\n│               └─ Partition 2 ──→                              │\n│    ✅ Retention: 7 days   ✅ Replay from offset              │\n└─────────────────────────────────────────────────────────────┘\n```\n\n## Decision Guide\n\n**Use Redis Pub/Sub if:**\n- Messages are truly ephemeral (notifications, presence updates)\n- You already have Redis and want quick implementation\n- Subscribers being online simultaneously is acceptable\n- Single-digit millisecond latency is critical\n\n**Use RabbitMQ if:**\n- You need reliable delivery with retries\n- Complex routing (headers, topics, direct exchanges)\n- Backpressure management and flow control\n- Enterprise features like federation, sharding\n\n**Use Kafka if:**\n- High throughput (millions of events/second)\n- Message replay and audit trails required\n- Event sourcing or stream processing patterns\n- Multiple independent consumer groups reading same data\n\n## Bottom Line\n\nRedis Pub/Sub is essentially **in-memory broadcasting**, not a true message broker. It's perfect for real-time features where losing occasional messages is acceptable, but inadequate for business-critical workflows requiring reliability, durability, or complex routing.",
+      "response_length": 5452,
+      "elapsed": 18.1,
+      "input_tokens": 21120,
+      "output_tokens": 1213,
+      "model": "openclaude/qwen3.5-27b",
+      "cost_usd": 0.135925,
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "Technically accurate throughout; minor nitpick that Redis Pub/Sub ordering is guaranteed per-channel which the ⚠️ slightly undersells, but nothing misleading."
+        },
+        "completeness": {
+          "score": 9,
+          "reason": "Covers mechanics, commands, use cases, limitations, and comparisons with both RabbitMQ and Kafka as asked; could mention Redis Streams as the natural upgrade path."
+        },
+        "conciseness": {
+          "score": 5,
+          "reason": "The same points are made in the table, the operational limitations list, the architecture diagrams, AND the decision guide—significant redundancy across sections."
+        },
+        "no_overexplaining": {
+          "score": 6,
+          "reason": "The ASCII architecture diagrams and the detailed decision guide add bulk beyond what was asked; basic command examples pad the response for an audience that clearly knows Redis."
+        },
+        "response_bloat": {
+          "score": 4,
+          "reason": "Seven major headers, three ASCII diagrams, two tables, multiple emoji markers, a 'Bottom Line' section restating the intro—classic structural bloat."
+        },
+        "actionability": {
+          "score": 8,
+          "reason": "Decision guide with concrete criteria is genuinely useful; specific latency figures and use-case mappings are practical."
+        }
+      }
+    },
+    {
+      "task_id": "review_code",
+      "task_name": "코드 리뷰",
+      "task_category": "non-coding",
+      "task_prompt": "Review this Python code and identify all issues:\n\n```python\nimport json\nimport os\nimport sys\nimport re\nfrom typing import Optional, List, Dict, Any, Union\n\nclass UserManager:\n    _instance = None\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        self.users = {}\n        self.db = None\n\n    def get_user(self, user_id):\n        try:\n            if user_id in self.users:\n                return self.users[user_id]\n            user = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n            self.users[user_id] = user\n            return user\n        except Exception as e:\n            print(f\"Error: {e}\")\n            return None\n\n    def delete_user(self, user_id):\n        try:\n            self.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n            if user_id in self.users:\n                del self.users[user_id]\n            return True\n        except:\n            return False\n```",
+      "condition": "openclaude_vanilla",
+      "condition_name": "OpenClaude + 바닐라 Qwen3.5-27B",
+      "system_prompt_used": "(openclaude full harness ~21K tokens)",
+      "timestamp": "2026-04-06T16:41:46.850288",
+      "response": "I'll review this code and identify all the issues:\n\n## Issues Found\n\n### 1. **SQL Injection Vulnerability** (Critical Security Issue)\n- `get_user()` line 26 and `delete_user()` line 34 both use f-strings to interpolate user input directly into SQL queries\n- This allows attackers to inject arbitrary SQL commands\n- **Fix**: Use parameterized queries instead\n\n### 2. **Singleton Pattern Flaw**\n- The `__init__` method runs on every instantiation, resetting `self.users = {}` and `self.db = None` each time\n- This defeats the purpose of the singleton pattern - cached users get cleared\n- **Fix**: Add initialization guard or move to `__new__`\n\n### 3. **Silent Exception Swallowing**\n- Line 28 catches all exceptions but only prints to stderr, returning `None`\n- Line 34 catches all exceptions with bare `except:` clause, losing error context\n- Makes debugging impossible and hides real failures\n- **Fix**: Log properly and/or re-raise as specific exceptions\n\n### 4. **Race Condition in Cache**\n- Line 25 checks `if user_id in self.users` then reads from DB\n- Between check and cache write, another thread could duplicate work or cause inconsistent state\n- **Fix**: Use thread-safe locking or atomic operations\n\n### 5. **No Input Validation**\n- No validation that `user_id` is a valid type or format\n- Could accept strings, floats, objects - leading to unexpected behavior\n\n### 6. **Unused Imports**\n- `re`, `List`, `Dict`, `Any`, `Union` are imported but never used\n\n### 7. **Missing Database Connection Setup**\n- `self.db = None` but no connection logic provided\n- Would fail immediately when any query is executed",
+      "response_length": 1613,
+      "elapsed": 7.82,
+      "input_tokens": 21341,
+      "output_tokens": 435,
+      "model": "openclaude/qwen3.5-27b",
+      "cost_usd": 0.11757999999999999,
+      "evaluation": {
+        "accuracy": {
+          "score": 8,
+          "reason": "Most issues correct, but #3 incorrectly says print goes to stderr (it goes to stdout), and #4 race condition is speculative without threading context."
+        },
+        "completeness": {
+          "score": 8,
+          "reason": "Covers the major issues well—SQL injection, singleton flaw, bare except, unused imports—but misses that os/sys/json are also unused and doesn't mention lack of type hints on methods despite importing typing."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "Each issue has a fix line which adds bulk; some descriptions could be tighter, but generally not egregiously padded."
+        },
+        "no_overexplaining": {
+          "score": 7,
+          "reason": "The fix suggestions weren't asked for and add mild bloat; race condition discussion is somewhat speculative and tangential for single-threaded code."
+        },
+        "response_bloat": {
+          "score": 6,
+          "reason": "Heavy use of headers, bold formatting, and bullet sub-points for 7 items creates visual bloat; the intro line 'I'll review this code' is unnecessary restating."
+        },
+        "actionability": {
+          "score": 7,
+          "reason": "Fix suggestions are directionally useful but vague—e.g., 'use parameterized queries' and 'use thread-safe locking' lack concrete code examples."
+        }
+      }
+    },
+    {
+      "task_id": "architecture_decision",
+      "task_name": "아키텍처 의사결정",
+      "task_category": "non-coding",
+      "task_prompt": "We have a monolithic Django app (50k LOC, 10 developers, ~500 RPS). The team wants to break out the payment processing module into a separate service. What are the key considerations, risks, and your recommendation?",
+      "condition": "openclaude_vanilla",
+      "condition_name": "OpenClaude + 바닐라 Qwen3.5-27B",
+      "system_prompt_used": "(openclaude full harness ~21K tokens)",
+      "timestamp": "2026-04-06T16:42:11.512378",
+      "response": "Payment 서비스 분리를 위한 주요 고려사항을 정리해드리겠습니다.\n\n## Key Considerations\n\n### 1. 데이터 일관성\n- **트랜잭션 문제**: Django ORM의 ACID 트랜잭션을 잃게 됨 → Saga 패턴이나 eventual consistency 도입 필요\n- **데이터 소유권**: user 테이블이 두 서비스에서 모두 필요한 경우 어떻게 할지 (duplication vs API call)\n- **마이그레이션 전략**: 기존 결제 데이터를 어떻게 이동할지\n\n### 2. 통신 오버헤드\n- **sync vs async**: HTTP/RPC는 느림. 결제 흐름 중 DB 조회가 여러 번 발생하면 성능 영향 큼\n- **500 RPS 부하**: 게이트웨이/로드밸런서 추가 필요. 네트워크 지연 시간 증가 예상\n\n### 3. 운영 복잡도\n- **배포**: CI/CD 파이프라인 분리, 버전 관리 전략\n- **모니터링**: 분산 tracing (Jaeger/Zipkin), 로그 집계\n- **10 명 팀**: 최소 2-3 명은 이 새 서비스 전용으로 할당 필요\n\n## Key Risks\n\n1. **Performance regression**: 현재 1 회 DB 호출이 N 회 network call 로 증가 → latency ↑\n2. **Data inconsistency**: 네트워크 장애 시 결제 상태 불일치 가능성\n3. **Debugging complexity**: end-to-end trace 구성 없으면 장애 원인 파악 어려움\n4. **Team capacity**: 10 명 팀에 인력 부담 → 다른 개발 속도 ↓\n\n## My Recommendation\n\n**현재 상황에서는 분리를 보류하세요.** 근거:\n\n| 요인 | 평가 |\n|------|------|\n| 50k LOC | 아직 단일 서비스로 관리 가능한 규모 |\n| 10 developers | Conway's law 고려해도 분리 임계점 미만 |\n| ~500 RPS | 최적화 후로도 mono로 충분히 처리 가능 |\n\n**대안 접근법:**\n1. **코드 레벨 분리**: `payments/` app 은 독립적 인터페이스 정의 (internal API contract)\n2. **Domain Bounded 명확화**: DDD 방식으로 payment 모듈 경계 먼저 확정\n3. **스트라이밍 준비**: future-proof 를 위해 event-driven 구조로 리팩토링 (django-channels, celery)\n\n**분리가 적절해지는 타이밍:**\n- 결제팀이 독립적으로 배포해야 하는 요구가 지속될 때\n- 결제 모듈이 전체 코드베이스의 30%+를 차지할 때\n- 1000+ RPS나 다양한 언어/플랫폼 지원 필요 시\n\n premature optimization보다는 **모놀리식 모듈러** 아키텍처로 전환하시는 것을 추천드립니다.",
+      "response_length": 1413,
+      "elapsed": 11.01,
+      "input_tokens": 21144,
+      "output_tokens": 603,
+      "model": "openclaude/qwen3.5-27b",
+      "cost_usd": 0.120795,
+      "evaluation": {
+        "accuracy": {
+          "score": 8,
+          "reason": "Technically sound points on Saga, eventual consistency, Conway's law; minor imprecision calling 50k LOC below splitting threshold (debatable) and 'django-channels' for event-driven is a stretch"
+        },
+        "completeness": {
+          "score": 8,
+          "reason": "Covers data consistency, communication, ops complexity, risks, recommendation, and alternative approach—hits all three asks (considerations, risks, recommendation) well; could mention security/PCI compliance aspects"
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Dense and well-structured with minimal filler; the table and bullet points are information-rich without redundancy"
+        },
+        "no_overexplaining": {
+          "score": 8,
+          "reason": "Stays focused on what was asked; doesn't define microservices or explain Django basics; slight over-elaboration on the 'timing' section but acceptable"
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "Headers are functional but numerous for the content length; the table is a nice touch but the 'alternative approach' and 'timing' sections add structural weight that borders on padding"
+        },
+        "actionability": {
+          "score": 8,
+          "reason": "Concrete next steps (DDD boundary, internal API contract, event-driven refactoring) and clear trigger conditions for when to split are genuinely useful and specific"
+        }
+      }
+    }
+  ]
+}
