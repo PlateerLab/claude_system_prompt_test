@@ -1,0 +1,230 @@
+[
+  {
+    "task_id": "cache_system",
+    "task_name": "LRU Cache with TTL",
+    "condition": "A_raw",
+    "condition_name": "A: Raw (no system prompt)",
+    "system_prompt_length": 0,
+    "timestamp": "2026-04-05T10:13:45.148555",
+    "response": "```python\nimport threading\nimport time\nfrom collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        if capacity <= 0:\n            raise ValueError(\"Capacity must be a positive integer\")\n        \n        self.capacity = capacity\n        self.cache = OrderedDict()  # key -> (value, expiration_time)\n        self.lock = threading.RLock()\n\n    def _is_expired(self, key: str) -> bool:\n        \"\"\"Check if a key has expired.\"\"\"\n        if key not in self.cache:\n            return True\n        _, expiration_time = self.cache[key]\n        return time.time() > expiration_time\n\n    def get(self, key) -> any:\n        \"\"\"\n        Get the value for the key.\n        Returns None if the key is missing or expired.\n        Moves the key to the end (most recently used) if valid.\n        \"\"\"\n        with self.lock:\n            if key not in self.cache:\n                return None\n            \n            value, expiration_time = self.cache[key]\n            \n            # Check expiration\n            if time.time() > expiration_time:\n                del self.cache[key]\n                return None\n            \n            # Move to end (most recently used)\n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds: int = 60) -> None:\n        \"\"\"\n        Store a value with a specific TTL.\n        If the cache is full, evicts the least recently used item.\n        \"\"\"\n        with self.lock:\n            current_time = time.time()\n            expiration_time = current_time + ttl_seconds\n            \n            # If key exists, update value and expiration, and move to end\n            if key in self.cache:\n                self.cache[key] = (value, expiration_time)\n                self.cache.move_to_end(key)\n                return\n            \n            # If cache is full, evict the least recently used (first item)\n            if len(self.cache) >= self.capacity:\n                self.cache.popitem(last=False)\n            \n            # Insert new item\n            self.cache[key] = (value, expiration_time)\n\n# --- Usage Example ---\n\nif __name__ == \"__main__\":\n    # Create a cache with max capacity of 3\n    cache = LRUCache(capacity=3)\n\n    # Put items\n    cache.put(\"a\", 1, ttl_seconds=5)\n    cache.put(\"b\", 2, ttl_seconds=5)\n    cache.put(\"c\", 3, ttl_seconds=5)\n\n    print(f\"Get 'a': {cache.get('a')}\")  # Output: 1\n    print(f\"Get 'b': {cache.get('b')}\")  # Output: 2\n\n    # Add a 4th item, which should evict 'c' (LRU) if 'a' and 'b' were accessed recently\n    # Actually, 'a' and 'b' were accessed, so 'c' is LRU.\n    cache.put(\"d\", 4, ttl_seconds=5)\n    \n    print(f\"Get 'c' (should be None): {cache.get('c')}\")  # Output: None\n    print(f\"Get 'd': {cache.get('d')}\")  # Output: 4\n\n    # Test TTL expiration\n    cache.put(\"expiring\", \"short_life\", ttl_seconds=1)\n    print(f\"Get 'expiring' immediately: {cache.get('expiring')}\") # Output: short_life\n    \n    time.sleep(1.5)\n    print(f\"Get 'expiring' after 1.5s: {cache.get('expiring')}\")   # Output: None\n```",
+    "response_length": 3062,
+    "elapsed": 57.19,
+    "input_tokens": 91,
+    "output_tokens": 804,
+    "evaluation": {
+      "correctness": {
+        "score": 9,
+        "reason": "Logic is correct: LRU eviction works, TTL expiration on get works, thread-safe with RLock; minor: expired items aren't evicted on put (could fill cache with stale keys)"
+      },
+      "efficiency": {
+        "score": 8,
+        "reason": "OrderedDict gives O(1) get/put/move_to_end; no background cleanup but acceptable for on-demand expiry"
+      },
+      "conciseness": {
+        "score": 6,
+        "reason": "Verbose variable names (expiration_time repeated), redundant comment blocks, _is_expired helper defined but never used in final code"
+      },
+      "no_overengineering": {
+        "score": 5,
+        "reason": "Type hints not asked for, docstrings not asked for, ValueError for invalid capacity not asked for, unused _is_expired method adds dead code"
+      },
+      "response_bloat": {
+        "score": 8,
+        "reason": "Minimal prose, mostly just code with a usage example as requested; inline comments are slightly verbose but acceptable"
+      },
+      "instruction_following": {
+        "score": 10,
+        "reason": "All four requirements met: get/put with TTL, LRU eviction, thread-safe, single class, usage example included"
+      }
+    }
+  },
+  {
+    "task_id": "cache_system",
+    "task_name": "LRU Cache with TTL",
+    "condition": "B_harness",
+    "condition_name": "B: Claude Code Harness",
+    "system_prompt_length": 2731,
+    "timestamp": "2026-04-05T10:14:27.728134",
+    "response": "```python\nimport threading\nimport time\nfrom collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache = OrderedDict()\n        self.lock = threading.RLock()\n\n    def get(self, key) -> any:\n        with self.lock:\n            if key not in self.cache:\n                return None\n            \n            value, expiry = self.cache[key]\n            \n            # Check if expired\n            if time.time() > expiry:\n                del self.cache[key]\n                return None\n            \n            # Move to end (most recently used)\n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds: int = 60) -> None:\n        with self.lock:\n            expiry = time.time() + ttl_seconds\n            \n            if key in self.cache:\n                # Update existing key\n                self.cache[key] = (value, expiry)\n                self.cache.move_to_end(key)\n            else:\n                # Evict if at capacity\n                if len(self.cache) >= self.capacity:\n                    self.cache.popitem(last=False)\n                \n                self.cache[key] = (value, expiry)\n\n# Usage example\nif __name__ == \"__main__\":\n    cache = LRUCache(capacity=2)\n    \n    cache.put(\"a\", 1, ttl_seconds=5)\n    cache.put(\"b\", 2, ttl_seconds=5)\n    \n    print(cache.get(\"a\"))  # Output: 1\n    print(cache.get(\"b\"))  # Output: 2\n    \n    cache.put(\"c\", 3)  # Evicts \"a\" (LRU)\n    print(cache.get(\"a\"))  # Output: None\n    \n    import time\n    time.sleep(6)\n    print(cache.get(\"b\"))  # Output: None (expired)\n```",
+    "response_length": 1649,
+    "elapsed": 29.51,
+    "input_tokens": 642,
+    "output_tokens": 412,
+    "evaluation": {
+      "correctness": {
+        "score": 9,
+        "reason": "Logic is correct: LRU eviction, TTL expiration, thread-safety all work; minor issue is expired keys only cleaned on access, not proactively, but that's acceptable."
+      },
+      "efficiency": {
+        "score": 9,
+        "reason": "OrderedDict gives O(1) get/put/move_to_end; RLock is appropriate for reentrant locking; no unnecessary overhead."
+      },
+      "conciseness": {
+        "score": 7,
+        "reason": "Inline comments like '# Move to end (most recently used)' and '# Update existing key' are somewhat redundant for obvious code; otherwise clean."
+      },
+      "no_overengineering": {
+        "score": 7,
+        "reason": "Type hints (any, int) were not asked for but added; otherwise no unnecessary patterns or abstractions."
+      },
+      "response_bloat": {
+        "score": 9,
+        "reason": "Response is almost entirely code with a minimal usage example; no excessive prose or explanations."
+      },
+      "instruction_following": {
+        "score": 10,
+        "reason": "All requirements met: get/put with TTL, LRU eviction, max capacity, thread-safe, single class, usage example included."
+      }
+    }
+  },
+  {
+    "task_id": "cache_system",
+    "task_name": "LRU Cache with TTL",
+    "condition": "C_inverse",
+    "condition_name": "C: Inverse Prompt (verbose)",
+    "system_prompt_length": 1129,
+    "timestamp": "2026-04-05T10:19:40.584057",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=300)"
+  },
+  {
+    "task_id": "cache_system",
+    "task_name": "LRU Cache with TTL",
+    "condition": "D_irrelevant",
+    "condition_name": "D: Irrelevant (pandas)",
+    "system_prompt_length": 567,
+    "timestamp": "2026-04-05T10:24:40.699353",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=300)"
+  },
+  {
+    "task_id": "rest_api",
+    "task_name": "Flask REST API",
+    "condition": "A_raw",
+    "condition_name": "A: Raw (no system prompt)",
+    "system_prompt_length": 0,
+    "timestamp": "2026-04-05T10:26:21.646133",
+    "response": "```python\nfrom flask import Flask, request, jsonify, abort\nfrom datetime import datetime\n\napp = Flask(__name__)\n\n# In-memory storage\ntodos = {}\nnext_id = 1\n\n@app.route('/todos', methods=['GET'])\ndef get_todos():\n    \"\"\"List all todos.\"\"\"\n    return jsonify(list(todos.values())), 200\n\n@app.route('/todos', methods=['POST'])\ndef create_todo():\n    \"\"\"Create a new todo.\"\"\"\n    global next_id\n    \n    data = request.get_json()\n    \n    if not data or 'title' not in data:\n        return jsonify({\"error\": \"Title is required\"}), 400\n    \n    todo = {\n        \"id\": next_id,\n        \"title\": data['title'],\n        \"description\": data.get('description', ''),\n        \"due_date\": data.get('due_date'),\n        \"completed\": False,\n        \"created_at\": datetime.utcnow().isoformat()\n    }\n    \n    todos[next_id] = todo\n    next_id += 1\n    \n    return jsonify(todo), 201\n\n@app.route('/todos/<int:todo_id>', methods=['GET'])\ndef get_todo(todo_id):\n    \"\"\"Get a single todo by ID.\"\"\"\n    if todo_id not in todos:\n        abort(404, description=\"Todo not found\")\n    \n    return jsonify(todos[todo_id]), 200\n\n@app.route('/todos/<int:todo_id>', methods=['PUT'])\ndef update_todo(todo_id):\n    \"\"\"Update an existing todo.\"\"\"\n    if todo_id not in todos:\n        abort(404, description=\"Todo not found\")\n    \n    data = request.get_json()\n    if not data:\n        return jsonify({\"error\": \"No data provided\"}), 400\n    \n    todo = todos[todo_id]\n    \n    # Update fields if provided\n    if 'title' in data:\n        todo['title'] = data['title']\n    if 'description' in data:\n        todo['description'] = data['description']\n    if 'due_date' in data:\n        todo['due_date'] = data['due_date']\n    if 'completed' in data:\n        todo['completed'] = data['completed']\n    \n    todo['updated_at'] = datetime.utcnow().isoformat()\n    \n    return jsonify(todo), 200\n\n@app.route('/todos/<int:todo_id>', methods=['DELETE'])\ndef delete_todo(todo_id):\n    \"\"\"Delete a todo by ID.\"\"\"\n    if todo_id not in todos:\n        abort(404, description=\"Todo not found\")\n    \n    del todos[todo_id]\n    return '', 204\n\n@app.errorhandler(404)\ndef not_found(error):\n    return jsonify({\"error\": \"Not found\"}), 404\n\n@app.errorhandler(400)\ndef bad_request(error):\n    return jsonify({\"error\": \"Bad request\"}), 400\n\nif __name__ == '__main__':\n    app.run(debug=True)\n```",
+    "response_length": 2339,
+    "elapsed": 100.95,
+    "input_tokens": 112,
+    "output_tokens": 670,
+    "evaluation": {
+      "correctness": {
+        "score": 9,
+        "reason": "All endpoints work correctly with proper status codes; abort(404) description is overridden by error handler but 404 is still returned correctly."
+      },
+      "efficiency": {
+        "score": 10,
+        "reason": "O(1) dict lookups for all operations; in-memory storage is optimal for the task."
+      },
+      "conciseness": {
+        "score": 6,
+        "reason": "Docstrings on every function not asked for; `datetime` import adds minor bloat; `global next_id` pattern is functional but verbose compared to alternatives."
+      },
+      "no_overengineering": {
+        "score": 5,
+        "reason": "Docstrings not asked for; `created_at`/`updated_at` timestamps not asked for; `completed` field not asked for; error handlers for 400/404 add unrequested structure."
+      },
+      "response_bloat": {
+        "score": 10,
+        "reason": "Response is code-only with no prose, explanations, or preamble."
+      },
+      "instruction_following": {
+        "score": 10,
+        "reason": "All 5 required endpoints implemented with correct methods, in-memory dict storage, proper HTTP status codes, JSON responses, and single file."
+      }
+    }
+  },
+  {
+    "task_id": "rest_api",
+    "task_name": "Flask REST API",
+    "condition": "B_harness",
+    "condition_name": "B: Claude Code Harness",
+    "system_prompt_length": 2731,
+    "timestamp": "2026-04-05T10:27:11.442247",
+    "response": "```python\nfrom flask import Flask, request, jsonify\n\napp = Flask(__name__)\n\n# In-memory storage\ntodos = {}\nnext_id = 1\n\n@app.route('/todos', methods=['GET'])\ndef get_todos():\n    return jsonify(list(todos.values())), 200\n\n@app.route('/todos', methods=['POST'])\ndef create_todo():\n    global next_id\n    data = request.get_json()\n    \n    if not data or 'title' not in data:\n        return jsonify({\"error\": \"Title is required\"}), 400\n    \n    todo = {\n        \"id\": next_id,\n        \"title\": data['title'],\n        \"description\": data.get('description', ''),\n        \"due_date\": data.get('due_date'),\n        \"completed\": False\n    }\n    \n    todos[next_id] = todo\n    next_id += 1\n    \n    return jsonify(todo), 201\n\n@app.route('/todos/<int:id>', methods=['GET'])\ndef get_todo(id):\n    if id not in todos:\n        return jsonify({\"error\": \"Todo not found\"}), 404\n    return jsonify(todos[id]), 200\n\n@app.route('/todos/<int:id>', methods=['PUT'])\ndef update_todo(id):\n    if id not in todos:\n        return jsonify({\"error\": \"Todo not found\"}), 404\n    \n    data = request.get_json()\n    todo = todos[id]\n    \n    if 'title' in data:\n        todo['title'] = data['title']\n    if 'description' in data:\n        todo['description'] = data['description']\n    if 'due_date' in data:\n        todo['due_date'] = data['due_date']\n    if 'completed' in data:\n        todo['completed'] = data['completed']\n    \n    return jsonify(todo), 200\n\n@app.route('/todos/<int:id>', methods=['DELETE'])\ndef delete_todo(id):\n    if id not in todos:\n        return jsonify({\"error\": \"Todo not found\"}), 404\n    \n    del todos[id]\n    return '', 204\n\nif __name__ == '__main__':\n    app.run(debug=True)\n```",
+    "response_length": 1682,
+    "elapsed": 34.64,
+    "input_tokens": 663,
+    "output_tokens": 489,
+    "evaluation": {
+      "correctness": {
+        "score": 9,
+        "reason": "All endpoints work correctly with proper 404 handling, 400 validation, and 204 on delete; minor: PUT doesn't guard against null data from get_json()"
+      },
+      "efficiency": {
+        "score": 10,
+        "reason": "O(1) dict lookups for all operations, in-memory storage used appropriately"
+      },
+      "conciseness": {
+        "score": 9,
+        "reason": "Clean and minimal with no unused imports or redundant code; blank lines are reasonable for readability"
+      },
+      "no_overengineering": {
+        "score": 9,
+        "reason": "No unnecessary type hints, docstrings, or abstractions; 'completed' field is a reasonable addition not explicitly asked for but adds minimal overhead"
+      },
+      "response_bloat": {
+        "score": 10,
+        "reason": "Response is code-only with no prose, explanations, or preamble"
+      },
+      "instruction_following": {
+        "score": 10,
+        "reason": "All 5 required endpoints implemented, in-memory dict storage used, proper HTTP status codes returned, single file, title validation included"
+      }
+    }
+  },
+  {
+    "task_id": "rest_api",
+    "task_name": "Flask REST API",
+    "condition": "C_inverse",
+    "condition_name": "C: Inverse Prompt (verbose)",
+    "system_prompt_length": 1129,
+    "timestamp": "2026-04-05T10:32:23.584710",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=300)"
+  },
+  {
+    "task_id": "rest_api",
+    "task_name": "Flask REST API",
+    "condition": "D_irrelevant",
+    "condition_name": "D: Irrelevant (pandas)",
+    "system_prompt_length": 567,
+    "timestamp": "2026-04-05T10:37:23.692993",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=300)"
+  },
+  {
+    "task_id": "task_queue",
+    "task_name": "Thread-Safe Task Queue",
+    "condition": "A_raw",
+    "condition_name": "A: Raw (no system prompt)",
+    "system_prompt_length": 0,
+    "timestamp": "2026-04-05T10:42:23.803289",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=300)"
+  },
+  {
+    "task_id": "task_queue",
+    "task_name": "Thread-Safe Task Queue",
+    "condition": "B_harness",
+    "condition_name": "B: Claude Code Harness",
+    "system_prompt_length": 2731,
+    "timestamp": "2026-04-05T10:47:23.909043",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=300)"
+  },
+  {
+    "task_id": "task_queue",
+    "task_name": "Thread-Safe Task Queue",
+    "condition": "C_inverse",
+    "condition_name": "C: Inverse Prompt (verbose)",
+    "system_prompt_length": 1129,
+    "timestamp": "2026-04-05T10:52:24.014990",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=300)"
+  },
+  {
+    "task_id": "task_queue",
+    "task_name": "Thread-Safe Task Queue",
+    "condition": "D_irrelevant",
+    "condition_name": "D: Irrelevant (pandas)",
+    "system_prompt_length": 567,
+    "timestamp": "2026-04-05T10:57:24.110701",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=300)"
+  }
+]

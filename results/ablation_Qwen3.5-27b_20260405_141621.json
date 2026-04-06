@@ -1,0 +1,1805 @@
+{
+  "experiment_meta": {
+    "model": "Qwen3.5-27b",
+    "backend": "vllm",
+    "base_url": "http://118.223.251.22:10051",
+    "default_system_prompt": "You are Qwen, created by Alibaba Cloud. You are a helpful assistant.",
+    "custom_system_prompt": "You are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.",
+    "chat_template": {
+      "system_prefix": "<|im_start|>system\n",
+      "system_suffix": "<|im_end|>\n",
+      "user_prefix": "<|im_start|>user\n",
+      "user_suffix": "<|im_end|>\n",
+      "assistant_prefix": "<|im_start|>assistant\n",
+      "stop_token": "<|im_end|>"
+    },
+    "temperature": 0.3,
+    "max_tokens": 4096,
+    "started_at": "2026-04-05T13:55:53.189705",
+    "conditions": {
+      "A_default_template": {
+        "name": "A. Default Template (모델 기본)",
+        "description": "모델의 기본 chat template 그대로 사용"
+      },
+      "B_no_system": {
+        "name": "B. No System Prompt",
+        "description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)"
+      },
+      "C_custom_on_default": {
+        "name": "C. Default + Custom (Append)",
+        "description": "기본 system prompt 뒤에 custom prompt 추가"
+      },
+      "D_custom_replace": {
+        "name": "D. Custom Only (Replace)",
+        "description": "default 제거, custom system prompt만 사용"
+      },
+      "E_raw_custom": {
+        "name": "E. Raw Prompt (Template 우회)",
+        "description": "chat template 완전 우회, raw text로 직접 제어"
+      }
+    },
+    "finished_at": "2026-04-05T14:16:21.961361"
+  },
+  "results": [
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "A_default_template",
+      "condition_name": "A. Default Template (모델 기본)",
+      "condition_description": "모델의 기본 chat template 그대로 사용",
+      "use_raw": false,
+      "system_prompt_length": 68,
+      "test_id": "algo_1",
+      "category": "algorithm",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T13:56:03.870367",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nWrite a Python function `two_sum(nums, target)` that returns indices of two numbers that add up to target. Must be O(n) time complexity.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef two_sum(nums, target):\n    \"\"\"\n    Returns the indices of two numbers in `nums` that add up to `target`.\n    Assumes exactly one solution exists and the same element cannot be used twice.\n    Time complexity: O(n)\n    Space complexity: O(n)\n    \"\"\"\n    seen = {}  # value -> index\n\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n\n    # If no solution is found (should not happen per problem statement)\n    raise ValueError(\"No two sum solution\")\n```",
+      "response_length": 579,
+      "elapsed": 10.68,
+      "input_tokens": 64,
+      "output_tokens": 148,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The hash map approach correctly finds two indices whose values sum to target, handles the single-pass lookup properly, and returns them in the right order."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Single pass O(n) time with O(n) space for the hash map — this is the optimal solution for this problem."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "The core logic is clean and minimal, but the docstring adds several lines not strictly necessary for a short utility function."
+        },
+        "no_overengineering": {
+          "score": 5,
+          "reason": "Includes a full docstring with time/space complexity notes, a raise ValueError for the 'impossible' case, and an inline comment — none of which were asked for. The problem only asked for the function."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "No prose or preamble outside the code block — the response appears to be code-only, which is clean. Minor bloat from the docstring inside the code."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Implements exactly two_sum(nums, target), returns indices of two numbers summing to target, and achieves O(n) time complexity as required."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "B_no_system",
+      "condition_name": "B. No System Prompt",
+      "condition_description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)",
+      "use_raw": false,
+      "system_prompt_length": 0,
+      "test_id": "algo_1",
+      "category": "algorithm",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T13:56:27.428534",
+      "rendered_prompt": "<|im_start|>user\nWrite a Python function `two_sum(nums, target)` that returns indices of two numbers that add up to target. Must be O(n) time complexity.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef two_sum(nums, target):\n    \"\"\"\n    Returns the indices of two numbers in `nums` that add up to `target`.\n    Assumes exactly one solution exists and the same element cannot be used twice.\n    Time complexity: O(n)\n    Space complexity: O(n)\n    \"\"\"\n    seen = {}  # value -> index\n\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n\n    # If no solution is found (should not happen per problem statement)\n    return None\n```\n\nExample usage:\n```python\nnums = [2, 7, 11, 15]\ntarget = 9\nprint(two_sum(nums, target))  # Output: [0, 1]\n```",
+      "response_length": 661,
+      "elapsed": 13.64,
+      "input_tokens": 43,
+      "output_tokens": 192,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The hash map approach correctly finds and returns the indices of two numbers summing to target. Logic is sound: for each number, it checks if the complement exists in seen before adding current number, preventing self-use."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Single pass O(n) time with O(n) space for the hash map. This is the optimal solution for this problem as stated."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "The core code is clean and minimal, but the docstring adds significant bulk (7 lines) that wasn't asked for. The inline comment '# value -> index' is fine, but the trailing comment about 'should not happen' is also unnecessary."
+        },
+        "no_overengineering": {
+          "score": 5,
+          "reason": "Includes a full docstring with time/space complexity analysis, a trailing return None with an explanatory comment for an impossible case, and an example usage block — none of which were requested. These additions go beyond what was asked."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "The response is mostly code-focused. The example usage block adds some bloat but is relatively minor. No excessive prose or disclaimers outside the code itself."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Correctly implements two_sum(nums, target) with O(n) time complexity as required. Minor deduction for adding unsolicited elements (docstring, example), but the core requirements are precisely met."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "C_custom_on_default",
+      "condition_name": "C. Default + Custom (Append)",
+      "condition_description": "기본 system prompt 뒤에 custom prompt 추가",
+      "use_raw": false,
+      "system_prompt_length": 1096,
+      "test_id": "algo_1",
+      "category": "algorithm",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T13:56:41.742641",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.\n\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `two_sum(nums, target)` that returns indices of two numbers that add up to target. Must be O(n) time complexity.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n    return None  # Or raise an exception if no solution is guaranteed\n```",
+      "response_length": 287,
+      "elapsed": 5.42,
+      "input_tokens": 288,
+      "output_tokens": 75,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The hash map approach is logically correct. It computes the complement, checks if it was seen, and returns the correct pair of indices in the right order [earlier_index, current_index]."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Single-pass O(n) hash map lookup achieves the required O(n) time complexity with O(n) space — the canonical optimal solution for this problem."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Code is tight and clean. The trailing inline comment '# Or raise an exception if no solution is guaranteed' is a minor unnecessary addition that slightly reduces cleanliness."
+        },
+        "no_overengineering": {
+          "score": 9,
+          "reason": "No type hints, docstrings, or extra classes. The only mild addition is the trailing comment hinting at exception handling, which was not asked for, but it is just a comment rather than actual extra code."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no prose preamble, explanation paragraphs, or disclaimers — exactly code-focused and clean."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Matches the required function signature two_sum(nums, target), returns indices as a list, and explicitly satisfies the O(n) time complexity constraint using a hash map."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "D_custom_replace",
+      "condition_name": "D. Custom Only (Replace)",
+      "condition_description": "default 제거, custom system prompt만 사용",
+      "use_raw": false,
+      "system_prompt_length": 1026,
+      "test_id": "algo_1",
+      "category": "algorithm",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T13:57:01.783631",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `two_sum(nums, target)` that returns indices of two numbers that add up to target. Must be O(n) time complexity.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n    return None  # or raise an exception if no solution is expected\n```",
+      "response_length": 285,
+      "elapsed": 5.45,
+      "input_tokens": 271,
+      "output_tokens": 75,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The hash map approach correctly finds and returns the indices of two numbers that sum to the target on the first valid pair found."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Single-pass O(n) time with O(n) space using a hash map — optimal for this problem as required."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "The code is tight and minimal. The inline comment on the return statement is mildly unnecessary but not harmful."
+        },
+        "no_overengineering": {
+          "score": 8,
+          "reason": "No type hints, no docstring, no class — good. The trailing `return None` with a comment edges slightly toward unrequested defensive coding, but it's a single line and not egregious."
+        },
+        "response_bloat": {
+          "score": 9,
+          "reason": "Response is essentially just the code block. The comment on the last line is the only minor prose present, keeping it very clean."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Implements exactly `two_sum(nums, target)`, returns indices as a list, and meets the O(n) time complexity requirement explicitly stated in the problem."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "E_raw_custom",
+      "condition_name": "E. Raw Prompt (Template 우회)",
+      "condition_description": "chat template 완전 우회, raw text로 직접 제어",
+      "use_raw": true,
+      "system_prompt_length": 1026,
+      "test_id": "algo_1",
+      "category": "algorithm",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T13:57:16.374765",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `two_sum(nums, target)` that returns indices of two numbers that add up to target. Must be O(n) time complexity.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "<think>\n\n</think>\n\n```python\ndef two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], i]\n        seen[num] = i\n    return None  # Or raise an exception if no solution is guaranteed\n```",
+      "response_length": 306,
+      "elapsed": 5.81,
+      "input_tokens": 267,
+      "output_tokens": 79,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The hash map approach correctly finds and returns the two indices. Logic is sound: for each number, it checks if the complement exists in seen, then stores current number. Handles the case where complement comes before current number correctly."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Classic O(n) single-pass hash map solution. Each lookup and insert is O(1) average, giving optimal O(n) time and O(n) space — exactly what was required."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Code is tight and minimal. The trailing comment '# Or raise an exception if no solution is guaranteed' is a minor addition but stays inline and doesn't bloat the code meaningfully."
+        },
+        "no_overengineering": {
+          "score": 9,
+          "reason": "No type hints, no docstring, no extra classes or patterns. The `return None` with inline comment is a small unnecessary hedge since the problem implies a solution always exists, but it's barely noticeable."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "No prose, preamble, or disclaimers outside the code block — good. However, the empty `<think></think>` tags are vestigial noise that add no value and clutter the response slightly."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Matches the exact function signature `two_sum(nums, target)`, returns indices as a list, and meets the explicit O(n) time complexity requirement."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "A_default_template",
+      "condition_name": "A. Default Template (모델 기본)",
+      "condition_description": "모델의 기본 chat template 그대로 사용",
+      "use_raw": false,
+      "system_prompt_length": 68,
+      "test_id": "algo_2",
+      "category": "algorithm",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T13:57:52.270021",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nWrite a Python function `merge_intervals(intervals)` that merges overlapping intervals. Input: list of [start, end] pairs. Return merged list.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merge overlapping intervals.\n\n    Args:\n        intervals (List[List[int]]): List of [start, end] pairs.\n\n    Returns:\n        List[List[int]]: Merged list of non-overlapping intervals.\n    \"\"\"\n    if not intervals:\n        return []\n\n    # Sort intervals by start time\n    intervals.sort(key=lambda x: x[0])\n\n    merged = [intervals[0]]\n\n    for current_start, current_end in intervals[1:]:\n        last_start, last_end = merged[-1]\n\n        if current_start <= last_end:\n            # Overlapping intervals: merge them\n            merged[-1][1] = max(last_end, current_end)\n        else:\n            # Non-overlapping: add new interval\n            merged.append([current_start, current_end])\n\n    return merged\n```\n\nExample usage:\n```python\nintervals = [[1, 3], [2, 6], [8, 10], [15, 18]]\nprint(merge_intervals(intervals))  # Output: [[1, 6], [8, 10], [15, 18]]\n```",
+      "response_length": 921,
+      "elapsed": 19.24,
+      "input_tokens": 63,
+      "output_tokens": 268,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Handles empty input, sorts by start, merges overlapping and adjacent intervals correctly, uses max() for nested intervals. Logic is sound for all edge cases."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) due to sort, O(n) merge pass — this is the optimal time complexity for this problem. Space is O(n) for output, which is unavoidable."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "The core logic is clean and tight, but the multi-line Google-style docstring with Args/Returns adds 7 lines of bulk not needed for a simple function. Example usage is acceptable."
+        },
+        "no_overengineering": {
+          "score": 5,
+          "reason": "A full docstring with typed Args and Returns sections was not requested and is unnecessary overhead for this problem. The function itself avoids type hints in the signature and extra classes, but the docstring is clear gold-plating."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "Response is code-focused with no preamble, disclaimers, or verbose explanation. The example usage adds minor bloat but is practical. No wall-of-text prose."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Function is named exactly merge_intervals, accepts intervals as the parameter, returns the merged list. Matches the problem spec precisely with no deviations."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "B_no_system",
+      "condition_name": "B. No System Prompt",
+      "condition_description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)",
+      "use_raw": false,
+      "system_prompt_length": 0,
+      "test_id": "algo_2",
+      "category": "algorithm",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T13:58:29.000944",
+      "rendered_prompt": "<|im_start|>user\nWrite a Python function `merge_intervals(intervals)` that merges overlapping intervals. Input: list of [start, end] pairs. Return merged list.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merge overlapping intervals.\n\n    Args:\n        intervals (List[List[int]]): List of [start, end] pairs.\n\n    Returns:\n        List[List[int]]: Merged list of non-overlapping intervals.\n    \"\"\"\n    if not intervals:\n        return []\n\n    # Sort intervals by start time\n    intervals.sort(key=lambda x: x[0])\n\n    merged = [intervals[0]]\n\n    for current_start, current_end in intervals[1:]:\n        last_start, last_end = merged[-1]\n\n        # If the current interval overlaps with the last merged interval\n        if current_start <= last_end:\n            # Merge them by updating the end of the last interval\n            merged[-1][1] = max(last_end, current_end)\n        else:\n            # No overlap, add the current interval as a new entry\n            merged.append([current_start, current_end])\n\n    return merged\n```\n\nExample usage:\n```python\nintervals = [[1, 3], [2, 6], [8, 10], [15, 18]]\nprint(merge_intervals(intervals))\n# Output: [[1, 6], [8, 10], [15, 18]]\n```",
+      "response_length": 1029,
+      "elapsed": 20.56,
+      "input_tokens": 42,
+      "output_tokens": 289,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Handles empty input, sorts by start, correctly merges overlapping and touching intervals (current_start <= last_end), and uses max() for the end to handle fully contained intervals. Logic is sound."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) due to sort, then a single O(n) pass. This is the optimal time complexity for this problem; space is O(n) for output."
+        },
+        "conciseness": {
+          "score": 6,
+          "reason": "Inline comments are clear but slightly over-explained. The verbose Google-style docstring and the appended example usage block add unnecessary length to what could be a tight implementation."
+        },
+        "no_overengineering": {
+          "score": 4,
+          "reason": "A full Args/Returns docstring was not requested. The example usage block at the end was not asked for. These additions go beyond what the problem asked for, even if individually benign."
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "No prose preamble or disclaimers, which is good. However, the unsolicited example usage block and the multi-line docstring inflate the response beyond what was requested."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Function is named merge_intervals, accepts a list of [start, end] pairs, and returns a merged list exactly as specified. Minor deduction only because the example usage was not requested but included."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "C_custom_on_default",
+      "condition_name": "C. Default + Custom (Append)",
+      "condition_description": "기본 system prompt 뒤에 custom prompt 추가",
+      "use_raw": false,
+      "system_prompt_length": 1096,
+      "test_id": "algo_2",
+      "category": "algorithm",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T13:58:55.707349",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.\n\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `merge_intervals(intervals)` that merges overlapping intervals. Input: list of [start, end] pairs. Return merged list.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n\n    # Sort by start time\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = [intervals[0]]\n    \n    for current in intervals[1:]:\n        last = merged[-1]\n        if current[0] <= last[1]:\n            # Overlapping: merge\n            merged[-1] = [last[0], max(last[1], current[1])]\n        else:\n            # Non-overlapping: add new\n            merged.append(current)\n    \n    return merged\n```",
+      "response_length": 487,
+      "elapsed": 9.84,
+      "input_tokens": 287,
+      "output_tokens": 135,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Handles empty input, sorts by start, correctly merges overlapping and contained intervals using max() for end, covers all edge cases."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) sort + O(n) single pass merge — optimal time and O(n) space, no redundant work."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Code is tight and clean; two inline comments add minimal but useful clarity without bloat."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstring, no extra validation, no classes — exactly the bare function requested."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no prose, preamble, explanation, or disclaimers surrounding it."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Implements exactly merge_intervals(intervals), accepts list of [start,end] pairs, returns merged list as specified."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "D_custom_replace",
+      "condition_name": "D. Custom Only (Replace)",
+      "condition_description": "default 제거, custom system prompt만 사용",
+      "use_raw": false,
+      "system_prompt_length": 1026,
+      "test_id": "algo_2",
+      "category": "algorithm",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T13:59:15.405390",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `merge_intervals(intervals)` that merges overlapping intervals. Input: list of [start, end] pairs. Return merged list.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n\n    # Sort by start time\n    intervals.sort(key=lambda x: x[0])\n\n    merged = [intervals[0]]\n\n    for current_start, current_end in intervals[1:]:\n        last_start, last_end = merged[-1]\n\n        if current_start <= last_end:\n            # Overlapping: merge\n            merged[-1] = [last_start, max(last_end, current_end)]\n        else:\n            # Non-overlapping: add new interval\n            merged.append([current_start, current_end])\n\n    return merged\n```",
+      "response_length": 550,
+      "elapsed": 9.92,
+      "input_tokens": 270,
+      "output_tokens": 140,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Handles empty input, sorts by start, correctly merges overlapping and touching intervals using <= and max(), and handles contained intervals properly."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) due to sort, O(n) single-pass merge — this is the optimal algorithm for this problem."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Code is tight and clean. Two brief inline comments add clarity without bloat. No dead code or redundant logic."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no custom exceptions, no classes, no input validation beyond the necessary empty-list guard. Exactly what was asked."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code — no preamble, no explanation prose, no trailing notes or disclaimers."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Function is named merge_intervals, accepts intervals as a list of [start, end] pairs, and returns the merged list exactly as specified."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "E_raw_custom",
+      "condition_name": "E. Raw Prompt (Template 우회)",
+      "condition_description": "chat template 완전 우회, raw text로 직접 제어",
+      "use_raw": true,
+      "system_prompt_length": 1026,
+      "test_id": "algo_2",
+      "category": "algorithm",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T13:59:37.798178",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `merge_intervals(intervals)` that merges overlapping intervals. Input: list of [start, end] pairs. Return merged list.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "<think>\n\n</think>\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n\n    # Sort by start time\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = [intervals[0]]\n    \n    for current in intervals[1:]:\n        last = merged[-1]\n        if current[0] <= last[1]:\n            # Overlapping: merge\n            merged[-1] = [last[0], max(last[1], current[1])]\n        else:\n            # Non-overlapping: append\n            merged.append(current)\n    \n    return merged\n```",
+      "response_length": 505,
+      "elapsed": 9.8,
+      "input_tokens": 266,
+      "output_tokens": 138,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Handles empty input, sorts by start time, correctly merges overlapping and adjacent intervals, and uses max() on end times to handle fully-contained intervals. All edge cases covered."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) due to sort, then O(n) single pass — this is the optimal time complexity for this problem. In-place sort avoids extra memory allocation."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Code is tight and clean. Two brief inline comments add minimal noise but do aid readability without being excessive. No dead code or redundant logic."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no input validation beyond the necessary empty-list guard, no helper classes or abstractions. Exactly the function requested and nothing more."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no prose, preamble, explanation, or disclaimers. The empty <think> block adds no actual content. Maximally code-focused."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Function is named exactly merge_intervals, accepts intervals as parameter, input is treated as list of [start, end] pairs, and returns a merged list — matches the spec precisely."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "A_default_template",
+      "condition_name": "A. Default Template (모델 기본)",
+      "condition_description": "모델의 기본 chat template 그대로 사용",
+      "use_raw": false,
+      "system_prompt_length": 68,
+      "test_id": "bugfix_1",
+      "category": "bugfix",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T13:59:57.651731",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nFix the bug in this Python code. Only fix the bug, don't refactor or add features:\n\n```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if type(item) == list:\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\n# Bug: flatten([1, [2, [3]], (4, 5)]) should return [1, 2, 3, (4, 5)]\n# But it fails with nested tuples and other iterables\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n```",
+      "response_length": 224,
+      "elapsed": 4.0,
+      "input_tokens": 158,
+      "output_tokens": 55,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "The fix correctly changes `type(item) == list` to `isinstance(item, list)`, which properly handles subclasses of list. The function now returns [1, 2, 3, (4, 5)] as expected — tuples and other non-list iterables are treated as atomic values. Minimal edge case concern: doesn't handle None or non-iterable inputs, but the problem doesn't require it."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "Same O(n) recursive traversal as before. No unnecessary overhead introduced. The isinstance check is marginally slower than type equality but negligibly so and is the correct approach here."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "The response is exactly the fixed function — no extra lines, no commented-out code, no unnecessary whitespace or additions."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "Only the single-character conceptual change was made (type() == to isinstance()). No type hints, docstrings, error handling, helper functions, or extra logic were added."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no prose, preamble, explanation, or disclaimers. Perfectly minimal."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Instructions said 'only fix the bug, don't refactor or add features.' The response does exactly that — one targeted fix to the type-checking mechanism, nothing else changed."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "B_no_system",
+      "condition_name": "B. No System Prompt",
+      "condition_description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)",
+      "use_raw": false,
+      "system_prompt_length": 0,
+      "test_id": "bugfix_1",
+      "category": "bugfix",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:00:14.105300",
+      "rendered_prompt": "<|im_start|>user\nFix the bug in this Python code. Only fix the bug, don't refactor or add features:\n\n```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if type(item) == list:\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\n# Bug: flatten([1, [2, [3]], (4, 5)]) should return [1, 2, 3, (4, 5)]\n# But it fails with nested tuples and other iterables\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\n# Bug: flatten([1, [2, [3]], (4, 5)]) should return [1, 2, 3, (4, 5)]\n# But it fails with nested tuples and other iterables\n```",
+      "response_length": 349,
+      "elapsed": 7.47,
+      "input_tokens": 137,
+      "output_tokens": 104,
+      "evaluation": {
+        "correctness": {
+          "score": 6,
+          "reason": "The change from `type(item) == list` to `isinstance(item, list)` is a valid improvement (handles list subclasses), but the original code already correctly handles the stated test case `flatten([1, [2, [3]], (4, 5)])` returning `[1, 2, 3, (4, 5)]`. The described bug ('fails with nested tuples and other iterables') is not actually present in the original for the given example, so the fix doesn't clearly resolve the stated symptom."
+        },
+        "efficiency": {
+          "score": 8,
+          "reason": "No algorithmic change; same O(n) recursive traversal. Appropriate for the task."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Single-line change, no extra code added. The retained comment is unchanged and appropriate."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "Exactly one targeted change — no type hints, docstrings, error handling, or extra abstractions added."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no prose, preamble, or explanation — perfectly minimal."
+        },
+        "instruction_following": {
+          "score": 8,
+          "reason": "Correctly avoided refactoring and feature additions, making only a minimal targeted fix. However, the fix does not fully address the described bug ('fails with nested tuples'), leaving the misleading comment unchanged and not demonstrating the fix actually resolves the stated failure."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "C_custom_on_default",
+      "condition_name": "C. Default + Custom (Append)",
+      "condition_description": "기본 system prompt 뒤에 custom prompt 추가",
+      "use_raw": false,
+      "system_prompt_length": 1096,
+      "test_id": "bugfix_1",
+      "category": "bugfix",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:00:50.516614",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.\n\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nFix the bug in this Python code. Only fix the bug, don't refactor or add features:\n\n```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if type(item) == list:\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\n# Bug: flatten([1, [2, [3]], (4, 5)]) should return [1, 2, 3, (4, 5)]\n# But it fails with nested tuples and other iterables\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n```",
+      "response_length": 224,
+      "elapsed": 4.05,
+      "input_tokens": 382,
+      "output_tokens": 55,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "The fix correctly addresses the core bug by replacing `type(item) == list` with `isinstance(item, list)`, which properly handles subclasses of list. The function now correctly treats tuples as atomic items rather than recursing into them, matching the expected output [1, 2, 3, (4, 5)]. The recursive flattening of nested lists works correctly."
+        },
+        "efficiency": {
+          "score": 8,
+          "reason": "The algorithm is O(n) where n is total elements, which is optimal for this problem. Recursive approach is straightforward with no unnecessary overhead. No significant inefficiencies introduced."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "The response is just the fixed code with no added comments, no extra lines, no explanations. Exactly the minimal change needed."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "Only changed `type(item) == list` to `isinstance(item, list)` — the single minimal fix required. No type hints, no docstrings, no error handling, no refactoring, no additional features added."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response contains only the code block. Zero prose, no preamble, no explanation of what was changed, no disclaimers. Perfectly lean."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Instructions said 'only fix the bug, don't refactor or add features.' The response does exactly that — one targeted change from type() to isinstance(), nothing else altered."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "D_custom_replace",
+      "condition_name": "D. Custom Only (Replace)",
+      "condition_description": "default 제거, custom system prompt만 사용",
+      "use_raw": false,
+      "system_prompt_length": 1026,
+      "test_id": "bugfix_1",
+      "category": "bugfix",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:01:06.055515",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nFix the bug in this Python code. Only fix the bug, don't refactor or add features:\n\n```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if type(item) == list:\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\n# Bug: flatten([1, [2, [3]], (4, 5)]) should return [1, 2, 3, (4, 5)]\n# But it fails with nested tuples and other iterables\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n```\n\nThe bug was using `type(item) == list` which doesn't handle subclasses of `list`. Changed to `isinstance(item, list)` to properly identify list instances.",
+      "response_length": 380,
+      "elapsed": 6.59,
+      "input_tokens": 365,
+      "output_tokens": 91,
+      "evaluation": {
+        "correctness": {
+          "score": 5,
+          "reason": "The fixed code produces the correct output for the given test case, but so does the original code. Tracing through the original: type((4,5))==list is False, so the tuple gets appended whole — exactly as expected. The original code was not actually broken for the described test case. The respondent fixed a non-bug."
+        },
+        "efficiency": {
+          "score": 7,
+          "reason": "The algorithm is identical to the original — same recursive approach, same time and space complexity. No efficiency changes were made, which is appropriate given the instructions."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "The code itself is clean and minimal with only a single-line change. The explanation is brief. Loses minor points because the explanation is inaccurate, adding unnecessary noise."
+        },
+        "no_overengineering": {
+          "score": 9,
+          "reason": "Only one character-level change was made: type(item)==list to isinstance(item, list). No type hints, docstrings, error handling, or extra patterns were added. Very disciplined scope."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "The response is short and code-focused. The one-sentence explanation is concise, though it misstates the actual bug. No preamble, disclaimers, or filler prose."
+        },
+        "instruction_following": {
+          "score": 4,
+          "reason": "The instructions said 'only fix the bug.' The actual bug described ('fails with nested tuples and other iterables') does not exist in the original code for the given test case — the original already returns [1, 2, 3, (4, 5)] correctly. The isinstance change addresses list subclasses, which was not the described problem. The respondent changed code that didn't need changing and misidentified the root cause."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "E_raw_custom",
+      "condition_name": "E. Raw Prompt (Template 우회)",
+      "condition_description": "chat template 완전 우회, raw text로 직접 제어",
+      "use_raw": true,
+      "system_prompt_length": 1026,
+      "test_id": "bugfix_1",
+      "category": "bugfix",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:01:55.661443",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nFix the bug in this Python code. Only fix the bug, don't refactor or add features:\n\n```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if type(item) == list:\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n\n# Bug: flatten([1, [2, [3]], (4, 5)]) should return [1, 2, 3, (4, 5)]\n# But it fails with nested tuples and other iterables\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "<think>\n\n</think>\n\n```python\ndef flatten(nested_list):\n    result = []\n    for item in nested_list:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n```\n\nThe bug was using `type(item) == list`, which fails for subclasses of `list`. Using `isinstance(item, list)` fixes this while maintaining the original logic that only flattens lists (not tuples or other iterables).",
+      "response_length": 459,
+      "elapsed": 7.72,
+      "input_tokens": 361,
+      "output_tokens": 107,
+      "evaluation": {
+        "correctness": {
+          "score": 6,
+          "reason": "The fix (isinstance vs type()==) is technically valid for list subclasses, but the original code already produces the correct output [1, 2, 3, (4, 5)] for the stated test case. The 'bug' about failing with nested tuples doesn't exist — tuples are already handled correctly by falling through to the else branch. The response fixes a real (but different) edge case."
+        },
+        "efficiency": {
+          "score": 7,
+          "reason": "Same recursive approach as the original, which is appropriate for this problem. No change in algorithmic complexity."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Code is minimal — exactly one character group changed. The explanation is short, though it slightly mischaracterizes what was broken."
+        },
+        "no_overengineering": {
+          "score": 9,
+          "reason": "Made exactly one targeted change with no extra features, type hints, error handling, or refactoring. Strictly follows the 'only fix the bug' constraint."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "Explanation is brief and to the point. Only one short paragraph of prose. Could be even cleaner with no explanation, but it's not excessive."
+        },
+        "instruction_following": {
+          "score": 6,
+          "reason": "Instruction said 'only fix the bug' and the response makes only one change, which is good. However, the explanation misidentifies what's actually broken — the original code already passes the stated test case, so the response fixes a different (subclass) scenario rather than the described failure."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "A_default_template",
+      "condition_name": "A. Default Template (모델 기본)",
+      "condition_description": "모델의 기본 chat template 그대로 사용",
+      "use_raw": false,
+      "system_prompt_length": 68,
+      "test_id": "bugfix_2",
+      "category": "bugfix",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:02:32.147808",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nFix the race condition in this Python code. Only fix the race condition, don't add features:\n\n```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n\n    def increment(self):\n        current = self.count\n        self.count = current + 1\n\n    def get_count(self):\n        return self.count\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n        self._lock = threading.Lock()\n\n    def increment(self):\n        with self._lock:\n            current = self.count\n            self.count = current + 1\n\n    def get_count(self):\n        with self._lock:\n            return self.count\n```",
+      "response_length": 333,
+      "elapsed": 5.96,
+      "input_tokens": 113,
+      "output_tokens": 83,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The lock correctly prevents race conditions in both increment() and get_count(). The read-modify-write sequence is fully protected."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "threading.Lock() is the standard, lightweight solution. Minor overhead from locking get_count(), but correct and acceptable."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Only the necessary lines were added: lock initialization in __init__, and with-lock wrappers in both methods. No extra code."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, docstrings, extra patterns, or unnecessary abstractions added. Exactly the minimal fix required."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no prose, preamble, explanation, or disclaimers. Perfectly clean."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Instruction was to fix only the race condition without adding features. The response does exactly that and nothing more."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "B_no_system",
+      "condition_name": "B. No System Prompt",
+      "condition_description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)",
+      "use_raw": false,
+      "system_prompt_length": 0,
+      "test_id": "bugfix_2",
+      "category": "bugfix",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:02:47.240691",
+      "rendered_prompt": "<|im_start|>user\nFix the race condition in this Python code. Only fix the race condition, don't add features:\n\n```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n\n    def increment(self):\n        current = self.count\n        self.count = current + 1\n\n    def get_count(self):\n        return self.count\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n        self._lock = threading.Lock()\n\n    def increment(self):\n        with self._lock:\n            current = self.count\n            self.count = current + 1\n\n    def get_count(self):\n        with self._lock:\n            return self.count\n```",
+      "response_length": 333,
+      "elapsed": 6.05,
+      "input_tokens": 92,
+      "output_tokens": 83,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Correctly fixes the race condition by wrapping the read-modify-write in increment() with a lock, making it atomic. Also locks get_count() for memory visibility consistency. Solution is fully correct."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "threading.Lock is the standard, minimal-overhead primitive for this use case. Lock scope is tight (only around critical sections). Fractionally below 10 only because self.count += 1 would be slightly more idiomatic, but the explicit read-modify-write is still correct and not inefficient."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Minimal diff from original: only _lock initialization added to __init__, and with-blocks added to the two methods. No unnecessary comments, no dead code, no padding."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no error handling, no extra classes or design patterns. Added exactly one lock and used it in exactly the two places required. Locking get_count() is correct for thread safety, not overengineering."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no preamble, no explanation prose, no disclaimers, no 'here is the fixed version' filler. Maximally clean."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Instruction said 'only fix the race condition, don't add features.' The response does exactly that — adds a lock to fix the race condition and nothing else. Perfect adherence."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "C_custom_on_default",
+      "condition_name": "C. Default + Custom (Append)",
+      "condition_description": "기본 system prompt 뒤에 custom prompt 추가",
+      "use_raw": false,
+      "system_prompt_length": 1096,
+      "test_id": "bugfix_2",
+      "category": "bugfix",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:03:08.707887",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.\n\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nFix the race condition in this Python code. Only fix the race condition, don't add features:\n\n```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n\n    def increment(self):\n        current = self.count\n        self.count = current + 1\n\n    def get_count(self):\n        return self.count\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n        self._lock = threading.Lock()\n\n    def increment(self):\n        with self._lock:\n            self.count += 1\n\n    def get_count(self):\n        with self._lock:\n            return self.count\n```",
+      "response_length": 291,
+      "elapsed": 5.38,
+      "input_tokens": 337,
+      "output_tokens": 75,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The lock correctly serializes access to the shared counter, eliminating the read-modify-write race condition. Using `self.count += 1` inside the lock is atomic relative to other threads holding the same lock. Locking `get_count()` also ensures memory visibility."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "threading.Lock is the lightest-weight synchronization primitive available in Python's threading module and is the optimal choice here. The lock scope is minimal, covering only the critical section. No unnecessary overhead introduced."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "The code is minimal: one lock added to __init__, two small with-lock blocks in the methods. No dead code, no redundant assignments, no extraneous structure."
+        },
+        "no_overengineering": {
+          "score": 9,
+          "reason": "No type hints, docstrings, error handling, or extra abstractions were added. Locking get_count() is a minor addition beyond the strict race condition in increment(), but it is standard and correct practice rather than a new feature, so only a small deduction."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "The response appears to consist solely of the corrected code block with no preamble, explanation, disclaimers, or trailing commentary — exactly what a code-focused answer should be."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "The instruction was 'only fix the race condition, don't add features.' The response adds only a threading.Lock, directly addressing the race condition and nothing else. No new public methods, no behavioral changes, no feature additions."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "D_custom_replace",
+      "condition_name": "D. Custom Only (Replace)",
+      "condition_description": "default 제거, custom system prompt만 사용",
+      "use_raw": false,
+      "system_prompt_length": 1026,
+      "test_id": "bugfix_2",
+      "category": "bugfix",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:03:34.234273",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nFix the race condition in this Python code. Only fix the race condition, don't add features:\n\n```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n\n    def increment(self):\n        current = self.count\n        self.count = current + 1\n\n    def get_count(self):\n        return self.count\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n        self._lock = threading.Lock()\n\n    def increment(self):\n        with self._lock:\n            current = self.count\n            self.count = current + 1\n\n    def get_count(self):\n        with self._lock:\n            return self.count\n```",
+      "response_length": 333,
+      "elapsed": 6.08,
+      "input_tokens": 320,
+      "output_tokens": 83,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Correctly identifies the read-modify-write race condition and wraps both increment() and get_count() with a Lock, making all shared state access atomic and thread-safe."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "threading.Lock is the standard, low-overhead solution. Locking get_count() adds minor overhead but is correct. A slight micro-optimization would be self.count += 1 inside the lock, but the current approach is functionally equivalent and clear."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "No extra comments, no dead code, no unnecessary imports. The diff from the original is minimal: one lock instantiation and two 'with self._lock' blocks."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "Added only a Lock—exactly what the race condition fix requires. No type hints, docstrings, RLock, threading.Event, abstract base classes, or any other unrequested additions."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "The response is pure code with zero prose, preamble, explanation, or disclaimers. Perfectly code-focused."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Instruction said 'only fix the race condition, don't add features.' The response does exactly that—no new public methods, no behavioral changes, just the synchronization primitive needed to fix the bug."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "E_raw_custom",
+      "condition_name": "E. Raw Prompt (Template 우회)",
+      "condition_description": "chat template 완전 우회, raw text로 직접 제어",
+      "use_raw": true,
+      "system_prompt_length": 1026,
+      "test_id": "bugfix_2",
+      "category": "bugfix",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:04:02.076867",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nFix the race condition in this Python code. Only fix the race condition, don't add features:\n\n```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n\n    def increment(self):\n        current = self.count\n        self.count = current + 1\n\n    def get_count(self):\n        return self.count\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "<think>\nThis is a classic race condition in the `increment` method. The problem is that reading `self.count`, then writing `self.count = current + 1` is not atomic. Multiple threads can read the same value before any of them writes, causing lost updates.\n\nThe fix is to use a lock to make the increment operation atomic. I'll add a threading.Lock and use it to protect the critical section in the increment method.\n</think>\n\n```python\nimport threading\n\nclass Counter:\n    def __init__(self):\n        self.count = 0\n        self._lock = threading.Lock()\n\n    def increment(self):\n        with self._lock:\n            current = self.count\n            self.count = current + 1\n\n    def get_count(self):\n        return self.count\n```",
+      "response_length": 729,
+      "elapsed": 12.26,
+      "input_tokens": 316,
+      "output_tokens": 169,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The fix is correct. A threading.Lock is initialized in __init__ and used as a context manager in increment, making the read-modify-write atomic and fully eliminating the race condition."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "threading.Lock is the standard, appropriate tool. The lock scope is minimal (only the critical section). Marginally, `self.count += 1` inside the lock would be cleaner but equally efficient; not a real concern."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "The code diff is minimal: one line added in __init__, one `with` block wrapping the existing two lines. No unnecessary restructuring or padding."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "Only a lock was added. No type hints, docstrings, abstract base classes, thread-safe wrappers, or extra utility methods. Exactly and only what was asked."
+        },
+        "response_bloat": {
+          "score": 6,
+          "reason": "The <think> block adds several sentences of prose explaining the problem diagnosis and approach. Since the fix is obvious and the instructions asked only for a fix, this narration is unnecessary bloat even if contained in reasoning tags."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Instructions said 'only fix the race condition, don't add features.' The response does exactly that — one lock added, no behavioral changes, no new public API, no extra functionality."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "A_default_template",
+      "condition_name": "A. Default Template (모델 기본)",
+      "condition_description": "모델의 기본 chat template 그대로 사용",
+      "use_raw": false,
+      "system_prompt_length": 68,
+      "test_id": "web_1",
+      "category": "web",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:05:45.714870",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nWrite a Python FastAPI endpoint `POST /users` that creates a user with fields: name (str, required), email (str, required, must be valid email), age (int, optional). Return 201 with the created user. Use Pydantic for validation.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "Here is a complete, runnable example of a FastAPI application implementing the `POST /users` endpoint with the specified requirements.\n\nThis solution uses **Pydantic** for data validation (including email format checking) and **FastAPI**'s built-in response handling.\n\n### Prerequisites\n\nYou will need to install the necessary packages:\n\n```bash\npip install fastapi uvicorn email-validator\n```\n*Note: `email-validator` is required for Pydantic's `EmailStr` type to work correctly.*\n\n### Python Code (`main.py`)\n\n```python\nfrom fastapi import FastAPI, HTTPException, status\nfrom pydantic import BaseModel, EmailStr, Field\nfrom typing import Optional\nfrom datetime import datetime\n\napp = FastAPI()\n\n# In-memory storage for demonstration purposes\n# In a real application, this would be a database\nusers_db: dict[str, dict] = {}\n\n# Pydantic model for request validation\nclass UserCreate(BaseModel):\n    name: str = Field(..., min_length=1, description=\"User's full name\")\n    email: EmailStr  # Automatically validates email format\n    age: Optional[int] = Field(None, ge=0, le=150, description=\"User's age (optional)\")\n\n# Pydantic model for the response (optional but good practice)\nclass UserResponse(BaseModel):\n    id: str\n    name: str\n    email: str\n    age: Optional[int]\n    created_at: datetime\n\n    class Config:\n        from_attributes = True  # Allows mapping from ORM models if used later\n\n@app.post(\"/users\", response_model=UserResponse, status_code=status.HTTP_201_CREATED)\nasync def create_user(user_data: UserCreate):\n    \"\"\"\n    Creates a new user.\n    - Returns 201 Created with the user details.\n    - Validates name (required), email (required & valid format), and age (optional).\n    \"\"\"\n    \n    # Check for duplicate email (simple in-memory check)\n    if user_data.email in users_db:\n        raise HTTPException(\n            status_code=status.HTTP_400_BAD_REQUEST,\n            detail=\"User with this email already exists.\"\n        )\n\n    # Generate a simple ID\n    user_id = f\"user_{len(users_db) + 1}\"\n    \n    # Construct the user object\n    new_user = {\n        \"id\": user_id,\n        \"name\": user_data.name,\n        \"email\": user_data.email,\n        \"age\": user_data.age,\n        \"created_at\": datetime.utcnow()\n    }\n\n    # Save to \"database\"\n    users_db[user_data.email] = new_user\n\n    return new_user\n\n# Optional: GET endpoint to verify creation\n@app.get(\"/users/{user_id}\")\nasync def get_user(user_id: str):\n    if user_id not in [u[\"id\"] for u in users_db.values()]:\n        raise HTTPException(status_code=404, detail=\"User not found\")\n    \n    # Find user by ID\n    for user in users_db.values():\n        if user[\"id\"] == user_id:\n            return user\n```\n\n### How to Run\n\n1.  Save the code above as `main.py`.\n2.  Run the server using Uvicorn:\n    ```bash\n    uvicorn main:app --reload\n    ```\n3.  Test the endpoint using `curl` or the Swagger UI (available at `http://127.0.0.1:8000/docs`):\n\n    **Valid Request:**\n    ```bash\n    curl -X POST \"http://127.0.0.1:8000/users\" \\\n         -H \"Content-Type: application/json\" \\\n         -d '{\"name\": \"Alice Smith\", \"email\": \"alice@example.com\", \"age\": 30}'\n    ```\n    *Response:* `201 Created` with the JSON object.\n\n    **Invalid Email Request:**\n    ```bash\n    curl -X POST \"http://127.0.0.1:8000/users\" \\\n         -H \"Content-Type: application/json\" \\\n         -d '{\"name\": \"Bob\", \"email\": \"not-an-email\"}'\n    ```\n    *Response:* `422 Unprocessable Entity` with validation error details.\n\n### Key Features Explained\n\n1.  **`EmailStr`**: This Pydantic type automatically validates that the string provided is a syntactically valid email address. If invalid, FastAPI returns a `422` error automatically.\n2.  **`Optional[int]`**: Marks the `age` field as optional. If omitted, it defaults to `None`.\n3.  **`Field(...)`**: Used to add constraints (like `min_length` for name or `ge`/`le` for age range) and documentation.\n4.  **`status_code=status.HTTP_201_CREATED`**: Explicitly sets the response status code to 201, which is the standard for successful resource creation.\n5.  **`response_model`**: Ensures the response is serialized according to the `UserResponse` schema, hiding internal logic and ensuring consistent output.",
+      "response_length": 4214,
+      "elapsed": 81.76,
+      "input_tokens": 91,
+      "output_tokens": 1138,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Code is functionally correct. Uses EmailStr for validation, proper 201 status, Pydantic models, and FastAPI correctly. Minor issue: datetime.utcnow() is deprecated in Python 3.12+ in favor of datetime.now(timezone.utc), but functional."
+        },
+        "efficiency": {
+          "score": 7,
+          "reason": "In-memory dict storage is fine for a demo, but the GET endpoint does a linear scan O(n) to find by user_id. The POST duplicate check is O(1). Overall acceptable for the scope asked."
+        },
+        "conciseness": {
+          "score": 4,
+          "reason": "Code is significantly bloated: includes unrequested in-memory DB, a GET endpoint, a separate UserResponse model with created_at/id fields not in the spec, Config class, and extensive inline comments that add noise without value."
+        },
+        "no_overengineering": {
+          "score": 3,
+          "reason": "Heavy overengineering: added duplicate email check, in-memory storage layer, UserResponse model with extra fields (id, created_at), a bonus GET endpoint, age range validation (ge=0, le=150), min_length on name — none of these were asked for."
+        },
+        "response_bloat": {
+          "score": 3,
+          "reason": "Extensive prose: prerequisites section, step-by-step run instructions, curl examples for both valid and invalid requests, a 'Key Features Explained' section with 5 bullet points. Far more explanation than needed for a code evaluation task."
+        },
+        "instruction_following": {
+          "score": 7,
+          "reason": "Correctly uses Pydantic, FastAPI, POST /users, required name/email, optional age, EmailStr validation, and returns 201. However, the response model returns extra fields (id, created_at) not specified, and the problem said nothing about storage, duplicate checks, or additional endpoints."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "B_no_system",
+      "condition_name": "B. No System Prompt",
+      "condition_description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)",
+      "use_raw": false,
+      "system_prompt_length": 0,
+      "test_id": "web_1",
+      "category": "web",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:07:05.006824",
+      "rendered_prompt": "<|im_start|>user\nWrite a Python FastAPI endpoint `POST /users` that creates a user with fields: name (str, required), email (str, required, must be valid email), age (int, optional). Return 201 with the created user. Use Pydantic for validation.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "Here is a complete, runnable example of a FastAPI application implementing the `POST /users` endpoint with the specified requirements.\n\nThis solution uses:\n1.  **Pydantic V2** for data validation (including the built-in `EmailStr` for email validation).\n2.  **FastAPI** for the endpoint definition and automatic OpenAPI documentation.\n3.  A simple in-memory list to simulate a database.\n\n```python\nfrom typing import Optional\nfrom fastapi import FastAPI, HTTPException, status\nfrom pydantic import BaseModel, EmailStr, Field\n\napp = FastAPI()\n\n# In-memory \"database\" to store users\nusers_db = []\n\n# Pydantic Model for User Creation\nclass UserCreate(BaseModel):\n    name: str = Field(..., min_length=1, description=\"User's full name\")\n    email: EmailStr = Field(..., description=\"Valid email address\")\n    age: Optional[int] = Field(None, ge=0, le=150, description=\"User's age (optional)\")\n\n# Pydantic Model for User Response (includes ID)\nclass UserResponse(BaseModel):\n    id: int\n    name: str\n    email: str\n    age: Optional[int]\n\n    class Config:\n        from_attributes = True  # Allows mapping from ORM models if used later\n\n@app.post(\"/users\", response_model=UserResponse, status_code=status.HTTP_201_CREATED)\nasync def create_user(user_data: UserCreate):\n    \"\"\"\n    Creates a new user.\n    \n    - **name**: Required string.\n    - **email**: Required, must be a valid email format.\n    - **age**: Optional integer (0-150).\n    \"\"\"\n    # Simulate generating a unique ID\n    new_id = len(users_db) + 1\n    \n    # Create the user object\n    new_user = UserResponse(\n        id=new_id,\n        name=user_data.name,\n        email=user_data.email,\n        age=user_data.age\n    )\n    \n    # Save to \"database\"\n    users_db.append(new_user)\n    \n    return new_user\n\n# Example usage for testing (uncomment to run locally)\n# if __name__ == \"__main__\":\n#     import uvicorn\n#     uvicorn.run(app, host=\"0.0.0.0\", port=8000)\n```\n\n### Key Features Explained\n\n1.  **`EmailStr`**: Imported from `pydantic`, this type automatically validates that the input string is a valid email format. If an invalid email is sent, FastAPI will automatically return a `422 Unprocessable Entity` error with details.\n2.  **`Optional[int]`**: The `age` field is optional. If not provided, it defaults to `None`. We also added constraints (`ge=0`, `le=150`) to ensure the age is realistic if provided.\n3.  **`Field(...)`**: The ellipsis `...` in `Field(...)` marks the field as required.\n4.  **Status Code 201**: The endpoint explicitly sets `status_code=status.HTTP_201_CREATED` to indicate a successful resource creation.\n5.  **Response Model**: We define a separate `UserResponse` model to include an `id` field, which is typically generated by the server/database, while keeping the input model (`UserCreate`) clean.\n\n### How to Test\n\nOnce running (e.g., via `uvicorn main:app --reload`), you can test the endpoint:\n\n**Valid Request:**\n```bash\ncurl -X POST \"http://localhost:8000/users\" \\\n     -H \"Content-Type: application/json\" \\\n     -d '{\"name\": \"Alice\", \"email\": \"alice@example.com\", \"age\": 30}'\n```\n*Response:* `{\"id\": 1, \"name\": \"Alice\", \"email\": \"alice@example.com\", \"age\": 30}` (Status 201)\n\n**Invalid Email Request:**\n```bash\ncurl -X POST \"http://localhost:8000/users\" \\\n     -H \"Content-Type: application/json\" \\\n     -d '{\"name\": \"Bob\", \"email\": \"not-an-email\"}'\n```\n*Response:* `422 Unprocessable Entity` with validation error details.",
+      "response_length": 3430,
+      "elapsed": 68.13,
+      "input_tokens": 70,
+      "output_tokens": 948,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Code is functionally correct. Uses EmailStr for validation, returns 201, uses Pydantic. Minor issue: EmailStr requires 'email-validator' package but no install note. ID generation with len()+1 is naive but works for the demo scope."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "In-memory list is appropriate for a demo; no unnecessary computation. Simple O(1) append and O(n) ID generation which is fine at this scale. No real inefficiencies for the problem scope."
+        },
+        "conciseness": {
+          "score": 5,
+          "reason": "The code itself is reasonably clean, but there are two Pydantic models where one might suffice, a Config class, commented-out uvicorn block, and field descriptions/docstrings that weren't asked for. The 'Key Features Explained' and 'How to Test' sections with curl examples add significant unnecessary length."
+        },
+        "no_overengineering": {
+          "score": 4,
+          "reason": "Added UserResponse with separate ID model (not asked), age range validation (ge=0, le=150, not asked), min_length on name (not asked), Field descriptions (not asked), class Config with from_attributes (not asked), full docstring on endpoint (not asked). These all go beyond the stated requirements."
+        },
+        "response_bloat": {
+          "score": 4,
+          "reason": "Heavy prose: intro paragraph listing technologies used, 'Key Features Explained' section with 5 bullet explanations, 'How to Test' section with two curl examples and expected responses. The response is roughly 3x longer than needed for the task."
+        },
+        "instruction_following": {
+          "score": 8,
+          "reason": "Follows core instructions well: POST /users endpoint, name/email/age fields with correct types, EmailStr validation, Pydantic models, returns 201. Minor deduction for adding unrequested fields/constraints and using two models instead of the minimal one implied by the prompt."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "C_custom_on_default",
+      "condition_name": "C. Default + Custom (Append)",
+      "condition_description": "기본 system prompt 뒤에 custom prompt 추가",
+      "use_raw": false,
+      "system_prompt_length": 1096,
+      "test_id": "web_1",
+      "category": "web",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:07:33.847895",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.\n\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python FastAPI endpoint `POST /users` that creates a user with fields: name (str, required), email (str, required, must be valid email), age (int, optional). Return 201 with the created user. Use Pydantic for validation.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nfrom fastapi import FastAPI, HTTPException, status\nfrom pydantic import BaseModel, EmailStr, Field\nfrom typing import Optional\n\napp = FastAPI()\n\nclass UserCreate(BaseModel):\n    name: str\n    email: EmailStr\n    age: Optional[int] = Field(None, ge=0)\n\nclass UserResponse(UserCreate):\n    id: int\n\n# In-memory store for demo purposes\nusers_db = {}\nnext_id = 1\n\n@app.post(\"/users\", status_code=status.HTTP_201_CREATED, response_model=UserResponse)\ndef create_user(user: UserCreate):\n    global next_id\n    user_id = next_id\n    next_id += 1\n    \n    user_dict = user.model_dump()\n    user_dict[\"id\"] = user_id\n    users_db[user_id] = user_dict\n    \n    return user_dict\n```",
+      "response_length": 681,
+      "elapsed": 13.38,
+      "input_tokens": 315,
+      "output_tokens": 187,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Code is functionally correct: uses EmailStr for email validation, Optional[int] for age, returns 201 status_code, and uses model_dump() (Pydantic v2 syntax). Minor caveat: global next_id is not thread-safe, and EmailStr requires the optional email-validator package not shown in imports/requirements."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "In-memory dict with integer key lookups is O(1) for all operations. Entirely appropriate for the scope of the problem. No unnecessary iterations or redundant computation."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Code is compact and clean. Single inline comment is justified. No redundant logic, no dead code. The two-model pattern (UserCreate + UserResponse) adds a few lines but is idiomatic FastAPI."
+        },
+        "no_overengineering": {
+          "score": 7,
+          "reason": "Added ge=0 age constraint not requested in the problem. Added a UserResponse model with an id field not asked for. These are reasonable real-world additions but go beyond the stated requirements. The response_model declaration and status module import are idiomatic and fine."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with a single brief inline comment. No preamble, no explanation paragraphs, no disclaimers, no closing remarks. Perfectly code-focused."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "All explicit requirements met: POST /users, name (str, required), email (EmailStr, required), age (Optional[int]), 201 response, Pydantic validation. Minor deduction for unrequested additions (ge=0, id field in response) that slightly exceed the spec, though they don't violate it."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "D_custom_replace",
+      "condition_name": "D. Custom Only (Replace)",
+      "condition_description": "default 제거, custom system prompt만 사용",
+      "use_raw": false,
+      "system_prompt_length": 1026,
+      "test_id": "web_1",
+      "category": "web",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:08:11.248161",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python FastAPI endpoint `POST /users` that creates a user with fields: name (str, required), email (str, required, must be valid email), age (int, optional). Return 201 with the created user. Use Pydantic for validation.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nfrom fastapi import FastAPI, HTTPException, status\nfrom pydantic import BaseModel, EmailStr, Field\nfrom typing import Optional\n\napp = FastAPI()\n\nclass UserCreate(BaseModel):\n    name: str\n    email: EmailStr\n    age: Optional[int] = Field(None, ge=0)\n\nclass UserResponse(UserCreate):\n    id: int\n\n# In-memory storage for demonstration\nusers_db: dict[int, UserResponse] = {}\nnext_id: int = 1\n\n@app.post(\"/users\", status_code=status.HTTP_201_CREATED, response_model=UserResponse)\nasync def create_user(user: UserCreate):\n    global next_id\n    new_user = UserResponse(id=next_id, **user.model_dump())\n    users_db[next_id] = new_user\n    next_id += 1\n    return new_user\n```",
+      "response_length": 682,
+      "elapsed": 13.68,
+      "input_tokens": 298,
+      "output_tokens": 187,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Code is functionally correct: EmailStr validates emails, Optional[int] handles optional age, status_code=201 is set, and model_dump() is the correct Pydantic v2 method. Minor caveat: EmailStr requires installing `email-validator` separately, which is not shown."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "In-memory dict with integer key gives O(1) insert and lookup. Global counter is simple and appropriate for a demo. No inefficiencies for the stated scope."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Code is compact and well-structured. Inheritance of UserResponse from UserCreate avoids repetition. Single inline comment is appropriate. No dead code or redundant logic."
+        },
+        "no_overengineering": {
+          "score": 7,
+          "reason": "Added `ge=0` constraint on age was not requested. Added `id` field in UserResponse and full in-memory storage layer (users_db, next_id, global) go beyond what was explicitly asked. A minimal answer could have returned the input model directly with 201 without simulating persistence."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with one minimal inline comment. No preamble, no prose explanation, no disclaimers, no markdown headers — exactly what was asked for."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "All explicit requirements met: POST /users, name/email required, EmailStr for email validation, age optional int, Pydantic models used, 201 returned with created user. Minor unrequested additions (ge=0, id field) are small deviations but align with REST conventions."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "E_raw_custom",
+      "condition_name": "E. Raw Prompt (Template 우회)",
+      "condition_description": "chat template 완전 우회, raw text로 직접 제어",
+      "use_raw": true,
+      "system_prompt_length": 1026,
+      "test_id": "web_1",
+      "category": "web",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:09:00.926390",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python FastAPI endpoint `POST /users` that creates a user with fields: name (str, required), email (str, required, must be valid email), age (int, optional). Return 201 with the created user. Use Pydantic for validation.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "<think>\nThe user wants a FastAPI endpoint for creating users. I need to:\n1. Create a Pydantic model for user validation with name (required), email (required, validated), age (optional)\n2. Create a POST /users endpoint\n3. Return 201 status code with the created user\n\nLet me write concise, working code.\n</think>\n\n```python\nfrom fastapi import FastAPI, HTTPException, status\nfrom pydantic import BaseModel, EmailStr, Field\nfrom typing import Optional\n\napp = FastAPI()\n\nclass UserCreate(BaseModel):\n    name: str = Field(..., min_length=1)\n    email: EmailStr\n    age: Optional[int] = Field(None, ge=0)\n\nclass UserResponse(BaseModel):\n    name: str\n    email: str\n    age: Optional[int]\n\n# In-memory storage (replace with database in production)\nusers_db: dict[str, UserResponse] = {}\n\n@app.post(\"/users\", status_code=status.HTTP_201_CREATED, response_model=UserResponse)\nasync def create_user(user: UserCreate):\n    if user.email in users_db:\n        raise HTTPException(status_code=400, detail=\"Email already registered\")\n    \n    user_response = UserResponse(**user.model_dump())\n    users_db[user.email] = user_response\n    return user_response\n```",
+      "response_length": 1151,
+      "elapsed": 21.09,
+      "input_tokens": 294,
+      "output_tokens": 295,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Code is functionally correct. Uses EmailStr for email validation, Field with min_length for name, optional age with ge=0 constraint. Returns 201 with user data. Minor: duplicate UserResponse class is slightly redundant since UserCreate could serve both purposes, but it works fine."
+        },
+        "efficiency": {
+          "score": 8,
+          "reason": "In-memory dict storage is appropriate for the scope of the problem. O(1) lookup for duplicate email check. No inefficiencies introduced."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "Having two separate model classes (UserCreate and UserResponse) adds minor redundancy since they share nearly identical fields. Could have used a single model or inheritance. Otherwise code is clean."
+        },
+        "no_overengineering": {
+          "score": 6,
+          "reason": "Several additions beyond what was asked: duplicate email check with HTTPException was not requested, separate UserResponse class wasn't required, in-memory users_db storage wasn't asked for, age ge=0 constraint and name min_length=1 weren't specified. These are reasonable but go beyond the stated requirements."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "Minimal prose. The think block adds slight overhead but the response is otherwise code-focused. One inline comment about replacing with database in production is a minor addition but not egregious."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Correctly uses FastAPI POST /users endpoint, Pydantic for validation, name (str required), email (str required with valid email via EmailStr), age (int optional), returns 201 with created user. All explicit instructions followed precisely."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "A_default_template",
+      "condition_name": "A. Default Template (모델 기본)",
+      "condition_description": "모델의 기본 chat template 그대로 사용",
+      "use_raw": false,
+      "system_prompt_length": 68,
+      "test_id": "data_1",
+      "category": "data",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:09:29.429736",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nWrite a Python function `group_by(items, key_fn)` that groups a list of items by the result of key_fn. Return a dict mapping keys to lists of items. Similar to itertools.groupby but doesn't require sorted input.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nfrom collections import defaultdict\nfrom typing import Callable, Dict, List, Any, TypeVar\n\nT = TypeVar('T')\nK = TypeVar('K')\n\ndef group_by(items: List[T], key_fn: Callable[[T], K]) -> Dict[K, List[T]]:\n    \"\"\"\n    Group a list of items by the result of key_fn.\n    \n    Unlike itertools.groupby, this does not require the input to be sorted.\n    \n    Args:\n        items: List of items to group.\n        key_fn: Function that extracts a grouping key from each item.\n    \n    Returns:\n        A dictionary mapping keys to lists of items that share that key.\n    \n    Example:\n        >>> group_by([1, 2, 3, 4, 5], lambda x: x % 2)\n        {1: [1, 3, 5], 0: [2, 4]}\n    \"\"\"\n    result: Dict[K, List[T]] = defaultdict(list)\n    for item in items:\n        key = key_fn(item)\n        result[key].append(item)\n    return dict(result)\n```",
+      "response_length": 841,
+      "elapsed": 18.04,
+      "input_tokens": 79,
+      "output_tokens": 252,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The implementation is correct. It uses defaultdict(list) to accumulate items under their keys, handles unsorted input, and converts to a plain dict before returning. The example in the docstring is accurate."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n) time complexity with a single pass over the list. defaultdict(list) with append is optimal for this grouping operation. No unnecessary iterations or data structure conversions beyond the final dict() call."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "The core logic is clean and minimal (3 lines), but the verbose docstring with Args/Returns/Example sections adds significant bulk. The TypeVar declarations and imports also add lines, though they support the type hints."
+        },
+        "no_overengineering": {
+          "score": 5,
+          "reason": "The problem asked for a simple grouping function. The response adds: full generic TypeVars (T, K), complete type annotations on all parameters and return type, a multi-section Google-style docstring, and a typing module import. None of these were requested and they significantly expand the solution beyond what was asked."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "The response is code-only with no prose preamble, disclaimers, or explanatory text outside the code block. The bloat is within the code itself (docstring), not in surrounding text."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Correctly implements group_by(items, key_fn), returns a dict mapping keys to lists of items, and explicitly handles unsorted input unlike itertools.groupby — matching all stated requirements precisely."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "B_no_system",
+      "condition_name": "B. No System Prompt",
+      "condition_description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)",
+      "use_raw": false,
+      "system_prompt_length": 0,
+      "test_id": "data_1",
+      "category": "data",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:09:57.853530",
+      "rendered_prompt": "<|im_start|>user\nWrite a Python function `group_by(items, key_fn)` that groups a list of items by the result of key_fn. Return a dict mapping keys to lists of items. Similar to itertools.groupby but doesn't require sorted input.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nfrom collections import defaultdict\nfrom typing import Callable, Dict, List, Any, TypeVar\n\nT = TypeVar('T')\nK = TypeVar('K')\n\ndef group_by(items: List[T], key_fn: Callable[[T], K]) -> Dict[K, List[T]]:\n    \"\"\"\n    Groups a list of items by the result of key_fn.\n    \n    Unlike itertools.groupby, this does not require the input to be sorted.\n    \n    Args:\n        items: A list of items to group.\n        key_fn: A function that takes an item and returns a grouping key.\n        \n    Returns:\n        A dictionary mapping keys to lists of items that produced that key.\n        \n    Example:\n        >>> group_by([1, 2, 3, 4, 5], lambda x: x % 2)\n        {1: [1, 3, 5], 0: [2, 4]}\n    \"\"\"\n    result: Dict[K, List[T]] = defaultdict(list)\n    for item in items:\n        key = key_fn(item)\n        result[key].append(item)\n    return dict(result)\n```",
+      "response_length": 859,
+      "elapsed": 18.31,
+      "input_tokens": 58,
+      "output_tokens": 255,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The implementation is correct. It uses defaultdict to accumulate items under each key, handles unsorted input, and returns a plain dict as specified."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n) time and space complexity, which is optimal for this problem. defaultdict(list) with append is the most efficient approach."
+        },
+        "conciseness": {
+          "score": 6,
+          "reason": "The core logic is clean and minimal (4 lines), but the verbose docstring with Args/Returns/Example sections adds significant bulk that wasn't requested."
+        },
+        "no_overengineering": {
+          "score": 4,
+          "reason": "Adds two TypeVars (T, K), full type annotations on all parameters and return type, and a lengthy Google-style docstring with sections — none of which were asked for. The TypeVar generics in particular go well beyond a simple function definition."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "The response is code-only with no surrounding prose, preamble, or disclaimers. The only 'bloat' is inside the code itself (docstring), not in the response wrapper."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Correctly implements group_by(items, key_fn) returning a dict mapping keys to lists, and explicitly handles unsorted input as noted. Minor deviation: the problem didn't ask for type hints or docstrings, but the core contract is perfectly fulfilled."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "C_custom_on_default",
+      "condition_name": "C. Default + Custom (Append)",
+      "condition_description": "기본 system prompt 뒤에 custom prompt 추가",
+      "use_raw": false,
+      "system_prompt_length": 1096,
+      "test_id": "data_1",
+      "category": "data",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:10:11.522111",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.\n\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `group_by(items, key_fn)` that groups a list of items by the result of key_fn. Return a dict mapping keys to lists of items. Similar to itertools.groupby but doesn't require sorted input.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nfrom collections import defaultdict\n\ndef group_by(items, key_fn):\n    result = defaultdict(list)\n    for item in items:\n        key = key_fn(item)\n        result[key].append(item)\n    return dict(result)\n```",
+      "response_length": 217,
+      "elapsed": 4.02,
+      "input_tokens": 303,
+      "output_tokens": 55,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Correctly groups items by key_fn result, handles unsorted input, returns a plain dict as specified."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n) time complexity using defaultdict for O(1) amortized appends. Optimal approach for this problem."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "4 lines of logic, no unnecessary code. Import, function def, loop, return — nothing extraneous."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no error handling, no extra classes. Exactly and only what was asked."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no prose, preamble, explanation, or disclaimers."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Implements group_by(items, key_fn) with exact signature, returns dict mapping keys to lists, handles unsorted input as specified."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "D_custom_replace",
+      "condition_name": "D. Custom Only (Replace)",
+      "condition_description": "default 제거, custom system prompt만 사용",
+      "use_raw": false,
+      "system_prompt_length": 1026,
+      "test_id": "data_1",
+      "category": "data",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:10:26.528571",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `group_by(items, key_fn)` that groups a list of items by the result of key_fn. Return a dict mapping keys to lists of items. Similar to itertools.groupby but doesn't require sorted input.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\nfrom collections import defaultdict\nfrom typing import Callable, Dict, List, Any, TypeVar\n\nT = TypeVar('T')\nK = TypeVar('K')\n\ndef group_by(items: List[T], key_fn: Callable[[T], K]) -> Dict[K, List[T]]:\n    result = defaultdict(list)\n    for item in items:\n        key = key_fn(item)\n        result[key].append(item)\n    return dict(result)\n```",
+      "response_length": 353,
+      "elapsed": 7.36,
+      "input_tokens": 286,
+      "output_tokens": 102,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Correctly groups items using defaultdict(list), applies key_fn to each item, and returns a plain dict. Handles empty lists, duplicate keys, and all edge cases properly."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n) single pass through items with O(1) amortized appends via defaultdict. This is optimal — you must visit every element at least once."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "Core logic is clean at 4 lines, but the TypeVar definitions (T, K) and the verbose typing imports (Callable, Dict, List, Any, TypeVar) add 5 extra lines of overhead that weren't requested."
+        },
+        "no_overengineering": {
+          "score": 5,
+          "reason": "Type hints were not asked for. The full generic typing with TypeVar T and K, plus importing Callable/Dict/List/Any/TypeVar, goes well beyond what was requested. A simple def group_by(items, key_fn) would have sufficed."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with zero prose, preamble, explanation, or disclaimers. Exactly what a code-only response should look like."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Matches the requested signature group_by(items, key_fn), returns a dict mapping keys to lists, and correctly handles unsorted input unlike itertools.groupby. Minor deduction for adding unrequested type annotations."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "E_raw_custom",
+      "condition_name": "E. Raw Prompt (Template 우회)",
+      "condition_description": "chat template 완전 우회, raw text로 직접 제어",
+      "use_raw": true,
+      "system_prompt_length": 1026,
+      "test_id": "data_1",
+      "category": "data",
+      "difficulty": "easy",
+      "timestamp": "2026-04-05T14:10:51.575972",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nWrite a Python function `group_by(items, key_fn)` that groups a list of items by the result of key_fn. Return a dict mapping keys to lists of items. Similar to itertools.groupby but doesn't require sorted input.<|im_end|>\n<|im_start|>assistant\n",
+      "response": "<think>\n\n</think>\n\n```python\nfrom collections import defaultdict\nfrom typing import Callable, Dict, List, Any, TypeVar\n\nT = TypeVar('T')\nK = TypeVar('K')\n\ndef group_by(items: List[T], key_fn: Callable[[T], K]) -> Dict[K, List[T]]:\n    result: Dict[K, List[T]] = defaultdict(list)\n    for item in items:\n        key = key_fn(item)\n        result[key].append(item)\n    return dict(result)\n```",
+      "response_length": 390,
+      "elapsed": 8.26,
+      "input_tokens": 282,
+      "output_tokens": 113,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The implementation is fully correct. It iterates over all items, applies key_fn to each, and groups them into lists — exactly as specified. Works on unsorted input unlike itertools.groupby."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Uses defaultdict for O(1) amortized appends and a single O(n) pass over items. This is optimal for the problem."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "The code itself is clean and minimal. However, the TypeVar declarations and multi-line imports add some verbosity that isn't strictly necessary for the solution."
+        },
+        "no_overengineering": {
+          "score": 5,
+          "reason": "Type hints were not asked for. The use of TypeVar T and K, explicit Dict/List/Callable type annotations, and a separate type alias line add complexity beyond what was requested. The problem just asked for a working function."
+        },
+        "response_bloat": {
+          "score": 9,
+          "reason": "No prose, preamble, or explanation — just the code block. The empty <think> tags are a minor noise element but not meaningfully bloating the response."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Returns a dict mapping keys to lists of items, accepts items and key_fn as parameters, works on unsorted input, and does not require sorted input like itertools.groupby. All stated requirements are met."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "A_default_template",
+      "condition_name": "A. Default Template (모델 기본)",
+      "condition_description": "모델의 기본 chat template 그대로 사용",
+      "use_raw": false,
+      "system_prompt_length": 68,
+      "test_id": "refactor_1",
+      "category": "refactor",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:11:24.184043",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nRefactor this Python code to remove duplication. Keep the same behavior:\n\n```python\ndef get_active_users(db):\n    users = db.query(\"SELECT * FROM users WHERE active = 1\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n\ndef get_admin_users(db):\n    users = db.query(\"SELECT * FROM users WHERE role = 'admin'\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "Here is the refactored code. The duplication has been removed by extracting the common logic into a helper function `_format_user` and creating a generic `_fetch_users` function that accepts the SQL query as a parameter.\n\n```python\ndef _format_user(user):\n    \"\"\"Converts a raw user row into the standardized dictionary format.\"\"\"\n    return {\n        'id': user['id'],\n        'name': user['name'],\n        'email': user['email'],\n        'display': f\"{user['name']} <{user['email']}>\"\n    }\n\ndef _fetch_users(db, query):\n    \"\"\"Executes a query and formats the resulting user list.\"\"\"\n    users = db.query(query)\n    return [_format_user(user) for user in users]\n\ndef get_active_users(db):\n    return _fetch_users(db, \"SELECT * FROM users WHERE active = 1\")\n\ndef get_admin_users(db):\n    return _fetch_users(db, \"SELECT * FROM users WHERE role = 'admin'\")\n```\n\n### Key Changes:\n1.  **`_format_user`**: Encapsulates the logic for transforming a single user row into the required dictionary structure.\n2.  **`_fetch_users`**: Handles the database query execution and the list comprehension to apply formatting to all results.\n3.  **Public Functions**: `get_active_users` and `get_admin_users` now simply define their specific SQL conditions and delegate the rest to the shared helper. This maintains the exact same behavior while making the code DRY (Don't Repeat Yourself).",
+      "response_length": 1374,
+      "elapsed": 23.85,
+      "input_tokens": 239,
+      "output_tokens": 334,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The refactored code is functionally identical to the original. Both public functions produce the same output with the same SQL queries, and the formatting logic is preserved exactly."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "List comprehension replaces the manual append loop, which is idiomatic and marginally faster in Python. The overall O(n) complexity is unchanged and optimal for this task."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "The code itself is clean and well-structured, but docstrings were added to both helper functions, which adds lines not present in the original and not requested."
+        },
+        "no_overengineering": {
+          "score": 7,
+          "reason": "Docstrings on the private helpers go beyond what was asked. The two-function decomposition (_format_user + _fetch_users) is reasonable, but the docstrings and the 'Key Changes' explanatory section represent additions beyond the stated task of simply removing duplication."
+        },
+        "response_bloat": {
+          "score": 5,
+          "reason": "The response includes an introductory prose sentence, a full 'Key Changes' section with three numbered bullet points, and a parenthetical DRY explanation. For a simple refactor request, this surrounding commentary is excessive and unnecessary."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "The core instruction—remove duplication while keeping the same behavior—is followed precisely. The public API is unchanged, the SQL queries are identical, and the output structure is preserved. Minor deduction for adding unsolicited docstrings."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "B_no_system",
+      "condition_name": "B. No System Prompt",
+      "condition_description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)",
+      "use_raw": false,
+      "system_prompt_length": 0,
+      "test_id": "refactor_1",
+      "category": "refactor",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:12:02.911080",
+      "rendered_prompt": "<|im_start|>user\nRefactor this Python code to remove duplication. Keep the same behavior:\n\n```python\ndef get_active_users(db):\n    users = db.query(\"SELECT * FROM users WHERE active = 1\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n\ndef get_admin_users(db):\n    users = db.query(\"SELECT * FROM users WHERE role = 'admin'\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "To remove the duplication, we can extract the common logic (iterating over users and formatting the dictionary) into a helper function. Both `get_active_users` and `get_admin_users` will then simply call this helper with their specific SQL query.\n\nHere is the refactored code:\n\n```python\ndef _format_user(user):\n    \"\"\"Helper function to format a user row into the required dictionary.\"\"\"\n    return {\n        'id': user['id'],\n        'name': user['name'],\n        'email': user['email'],\n        'display': f\"{user['name']} <{user['email']}>\"\n    }\n\ndef get_active_users(db):\n    users = db.query(\"SELECT * FROM users WHERE active = 1\")\n    return [_format_user(user) for user in users]\n\ndef get_admin_users(db):\n    users = db.query(\"SELECT * FROM users WHERE role = 'admin'\")\n    return [_format_user(user) for user in users]\n```\n\n### Key Changes:\n1.  **Extracted Logic**: Created `_format_user` to handle the dictionary construction. The underscore prefix indicates it is an internal helper function.\n2.  **List Comprehension**: Replaced the explicit `for` loop with a list comprehension for more concise and Pythonic code.\n3.  **Maintained Behavior**: The SQL queries remain exactly the same, and the output structure is identical to the original implementation.",
+      "response_length": 1268,
+      "elapsed": 22.09,
+      "input_tokens": 218,
+      "output_tokens": 308,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The refactored code is fully correct. The SQL queries are unchanged, the helper function replicates the exact dictionary structure including the 'display' field, and list comprehension produces identical output to the original for loops."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Optimal approach — extracts shared logic into a single helper, uses list comprehension which is idiomatic and marginally faster than manual append loops. No unnecessary passes or data copies."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "The code itself is clean and tight, but the docstring on _format_user is a minor unnecessary addition. The 'Key Changes' section adds some bulk to what could have been code-only."
+        },
+        "no_overengineering": {
+          "score": 7,
+          "reason": "The docstring was not asked for and adds noise to a trivial helper. Switching to list comprehension is a bonus change beyond the stated goal of removing duplication, though it's minor. No classes or extra patterns added."
+        },
+        "response_bloat": {
+          "score": 5,
+          "reason": "The response opens with a full explanatory paragraph before showing code, then appends a 'Key Changes' bulleted section. Neither was requested. A clean refactor answer needs only the code, maybe a one-liner note."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Directly addresses the goal — duplication removed, behavior preserved, same function signatures retained. Minor deductions for the unsolicited docstring and list-comprehension change which go slightly beyond 'remove duplication'."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "C_custom_on_default",
+      "condition_name": "C. Default + Custom (Append)",
+      "condition_description": "기본 system prompt 뒤에 custom prompt 추가",
+      "use_raw": false,
+      "system_prompt_length": 1096,
+      "test_id": "refactor_1",
+      "category": "refactor",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:12:33.409114",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.\n\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nRefactor this Python code to remove duplication. Keep the same behavior:\n\n```python\ndef get_active_users(db):\n    users = db.query(\"SELECT * FROM users WHERE active = 1\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n\ndef get_admin_users(db):\n    users = db.query(\"SELECT * FROM users WHERE role = 'admin'\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef _format_user(user):\n    return {\n        'id': user['id'],\n        'name': user['name'],\n        'email': user['email'],\n        'display': f\"{user['name']} <{user['email']}>\"\n    }\n\ndef get_active_users(db):\n    users = db.query(\"SELECT * FROM users WHERE active = 1\")\n    return [_format_user(user) for user in users]\n\ndef get_admin_users(db):\n    users = db.query(\"SELECT * FROM users WHERE role = 'admin'\")\n    return [_format_user(user) for user in users]\n```",
+      "response_length": 478,
+      "elapsed": 9.99,
+      "input_tokens": 463,
+      "output_tokens": 139,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The refactored code preserves identical behavior. _format_user extracts the duplicated dict-building logic exactly, and both public functions return the same structure as before."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "List comprehensions are slightly more efficient than manual append loops. No algorithmic change needed here; the DB queries remain unchanged. Minor improvement over original."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Code is minimal and clean. The helper function is short, both public functions are reduced to two lines each. Nothing superfluous."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no extra classes, no abstract patterns, no error handling beyond what was present. Exactly the minimal refactor requested."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "The response is pure code with no prose, preamble, explanation, or disclaimers. Perfectly code-focused."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Task was to remove duplication while keeping the same behavior. The response does exactly that — extracts the repeated dict-building into a private helper and simplifies both functions."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "D_custom_replace",
+      "condition_name": "D. Custom Only (Replace)",
+      "condition_description": "default 제거, custom system prompt만 사용",
+      "use_raw": false,
+      "system_prompt_length": 1026,
+      "test_id": "refactor_1",
+      "category": "refactor",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:12:51.577491",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nRefactor this Python code to remove duplication. Keep the same behavior:\n\n```python\ndef get_active_users(db):\n    users = db.query(\"SELECT * FROM users WHERE active = 1\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n\ndef get_admin_users(db):\n    users = db.query(\"SELECT * FROM users WHERE role = 'admin'\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef _format_user(user):\n    return {\n        'id': user['id'],\n        'name': user['name'],\n        'email': user['email'],\n        'display': f\"{user['name']} <{user['email']}>\"\n    }\n\ndef get_active_users(db):\n    users = db.query(\"SELECT * FROM users WHERE active = 1\")\n    return [_format_user(user) for user in users]\n\ndef get_admin_users(db):\n    users = db.query(\"SELECT * FROM users WHERE role = 'admin'\")\n    return [_format_user(user) for user in users]\n```",
+      "response_length": 478,
+      "elapsed": 9.94,
+      "input_tokens": 446,
+      "output_tokens": 139,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The refactored code preserves identical behavior. _format_user produces the same dict structure, and both public functions return the same results as before."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "List comprehensions are slightly more efficient than manual append loops. No algorithmic changes needed here; the bottleneck is the DB query, which is untouched."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Code is minimal and clean. Duplication is eliminated via a small helper, and list comprehensions replace verbose loops without adding noise."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, docstrings, error handling, classes, or extra abstractions added. Exactly the minimal refactor requested."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no prose, preamble, explanation, or disclaimers — exactly what a code-only answer should look like."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Instructions asked to remove duplication while keeping the same behavior. The response does precisely that — extracts the repeated formatting logic into a helper and simplifies both functions."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "E_raw_custom",
+      "condition_name": "E. Raw Prompt (Template 우회)",
+      "condition_description": "chat template 완전 우회, raw text로 직접 제어",
+      "use_raw": true,
+      "system_prompt_length": 1026,
+      "test_id": "refactor_1",
+      "category": "refactor",
+      "difficulty": "medium",
+      "timestamp": "2026-04-05T14:13:15.127673",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nRefactor this Python code to remove duplication. Keep the same behavior:\n\n```python\ndef get_active_users(db):\n    users = db.query(\"SELECT * FROM users WHERE active = 1\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n\ndef get_admin_users(db):\n    users = db.query(\"SELECT * FROM users WHERE role = 'admin'\")\n    result = []\n    for user in users:\n        result.append({\n            'id': user['id'],\n            'name': user['name'],\n            'email': user['email'],\n            'display': f\"{user['name']} <{user['email']}>\"\n        })\n    return result\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "<think>\nThe user wants me to refactor this code to remove duplication. Both functions have the same structure - they query users with different conditions, then transform each user into a dictionary with the same fields.\n\nI can create a helper function that takes the query as a parameter and handles the transformation logic.\n\nLet me write a concise refactored version:\n</think>\n\n```python\ndef _transform_user(user):\n    return {\n        'id': user['id'],\n        'name': user['name'],\n        'email': user['email'],\n        'display': f\"{user['name']} <{user['email']}>\"\n    }\n\ndef get_users(db, query):\n    return [_transform_user(user) for user in db.query(query)]\n\ndef get_active_users(db):\n    return get_users(db, \"SELECT * FROM users WHERE active = 1\")\n\ndef get_admin_users(db):\n    return get_users(db, \"SELECT * FROM users WHERE role = 'admin'\")\n```",
+      "response_length": 860,
+      "elapsed": 15.3,
+      "input_tokens": 442,
+      "output_tokens": 212,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "The refactored code preserves identical behavior. Both public functions delegate to get_users with the same SQL queries, and _transform_user produces the exact same dict structure including the display field."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "List comprehension is slightly more efficient than the original append loop. No unnecessary passes over data. Query delegation is clean with no overhead."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Code is minimal and clean. Three small focused functions, no redundant lines, no commented-out code."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no error handling, no classes or patterns beyond what was needed. Exactly the right level of abstraction to eliminate duplication."
+        },
+        "response_bloat": {
+          "score": 9,
+          "reason": "The response is nearly code-only. The <think> block adds a tiny amount of prose but it is brief and directly relevant. No preamble, disclaimers, or explanations after the code."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Directly addressed the task: removed duplication while keeping identical behavior. Both original public function signatures are preserved."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "A_default_template",
+      "condition_name": "A. Default Template (모델 기본)",
+      "condition_description": "모델의 기본 chat template 그대로 사용",
+      "use_raw": false,
+      "system_prompt_length": 68,
+      "test_id": "refactor_2",
+      "category": "refactor",
+      "difficulty": "hard",
+      "timestamp": "2026-04-05T14:13:37.139598",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nSimplify this Python code while keeping the same behavior:\n\n```python\ndef process_order(order):\n    if order is not None:\n        if order.get('items') is not None:\n            if len(order['items']) > 0:\n                total = 0\n                for item in order['items']:\n                    if item.get('price') is not None:\n                        if item.get('quantity') is not None:\n                            total += item['price'] * item['quantity']\n                        else:\n                            total += item['price'] * 1\n                    else:\n                        pass\n                if order.get('discount') is not None:\n                    total = total - (total * order['discount'] / 100)\n                return total\n            else:\n                return 0\n        else:\n            return 0\n    else:\n        return 0\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "Here’s a simplified version that preserves the exact behavior:\n\n```python\ndef process_order(order):\n    if not order or not order.get('items'):\n        return 0\n\n    total = 0\n    for item in order['items']:\n        price = item.get('price')\n        quantity = item.get('quantity', 1)\n        if price is not None:\n            total += price * quantity\n\n    if order.get('discount') is not None:\n        total -= total * order['discount'] / 100\n\n    return total\n```\n\nKey simplifications:\n- Collapsed nested `if` checks for `order`, `items`, and empty list into one guard.\n- Used `item.get('quantity', 1)` to handle missing quantity.\n- Removed unnecessary `else: pass` and redundant branches.\n- Kept the same logic for discount application and early returns.",
+      "response_length": 758,
+      "elapsed": 13.89,
+      "input_tokens": 223,
+      "output_tokens": 194,
+      "evaluation": {
+        "correctness": {
+          "score": 7,
+          "reason": "The simplified code has a subtle bug: `item.get('quantity', 1)` only defaults to 1 when the key is absent, but returns `None` if the key exists with value `None`. The original handles both cases (absent or None) as quantity=1, so `price * None` would throw a TypeError in the simplified version for explicitly null quantities."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Single O(n) pass through items with no unnecessary data structures or redundant operations. Optimal for this problem."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "The code itself is clean and tight. The 'Key simplifications' bullet list adds minor bulk but stays brief and relevant."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, docstrings, extra abstractions, or new patterns introduced. Purely a clean reduction of the original logic."
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "The opening line 'Here's a simplified version that preserves the exact behavior:' and the 4-bullet explanation are slightly unnecessary prose for what is essentially a code transformation task, though the bullets are brief."
+        },
+        "instruction_following": {
+          "score": 8,
+          "reason": "The instruction was to simplify while keeping identical behavior. The code is well-simplified, but the claim of exact behavior preservation is incorrect for the `None` quantity edge case, which is a meaningful deviation from the stated goal."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "B_no_system",
+      "condition_name": "B. No System Prompt",
+      "condition_description": "system 필드를 빈 문자열로 설정 (template 구조는 유지)",
+      "use_raw": false,
+      "system_prompt_length": 0,
+      "test_id": "refactor_2",
+      "category": "refactor",
+      "difficulty": "hard",
+      "timestamp": "2026-04-05T14:14:17.772811",
+      "rendered_prompt": "<|im_start|>user\nSimplify this Python code while keeping the same behavior:\n\n```python\ndef process_order(order):\n    if order is not None:\n        if order.get('items') is not None:\n            if len(order['items']) > 0:\n                total = 0\n                for item in order['items']:\n                    if item.get('price') is not None:\n                        if item.get('quantity') is not None:\n                            total += item['price'] * item['quantity']\n                        else:\n                            total += item['price'] * 1\n                    else:\n                        pass\n                if order.get('discount') is not None:\n                    total = total - (total * order['discount'] / 100)\n                return total\n            else:\n                return 0\n        else:\n            return 0\n    else:\n        return 0\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef process_order(order):\n    if not order or not order.get('items'):\n        return 0\n\n    total = sum(\n        item.get('price', 0) * item.get('quantity', 1)\n        for item in order['items']\n        if item.get('price') is not None\n    )\n\n    if order.get('discount') is not None:\n        total *= (1 - order['discount'] / 100)\n\n    return total\n```",
+      "response_length": 363,
+      "elapsed": 7.84,
+      "input_tokens": 202,
+      "output_tokens": 109,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Logic is functionally equivalent for all realistic inputs. `not order` correctly catches None and empty dict (original's chained None checks also return 0 for empty dict). Empty list is handled by `not order.get('items')`. Discount math `total *= (1 - discount/100)` is algebraically identical to original. Minor theoretical edge case: `not order` also catches falsy non-None values (e.g., 0, False) that original's `is not None` would not, but these are not valid order types in practice."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "Generator expression with `sum()` is idiomatic and efficient—single pass, O(n), no intermediate list allocation. Slightly better than original's explicit loop due to reduced overhead. No algorithmic improvement was possible or needed."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Code reduced from ~20 lines to 10 lines. Early return guard clause eliminates nested ifs. Generator expression eliminates loop boilerplate. No redundant logic remains."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, docstrings, extra classes, additional error handling, logging, or abstractions added. Purely a simplification of existing logic with no scope creep."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is exclusively the code block. Zero prose, preamble, explanation, or disclaimers. Maximally clean."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Instruction was to simplify while keeping the same behavior, which is achieved. The trivial falsy-value edge case divergence from strict `is not None` semantics is the only reason for not scoring 10, though it has no practical impact."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "C_custom_on_default",
+      "condition_name": "C. Default + Custom (Append)",
+      "condition_description": "기본 system prompt 뒤에 custom prompt 추가",
+      "use_raw": false,
+      "system_prompt_length": 1096,
+      "test_id": "refactor_2",
+      "category": "refactor",
+      "difficulty": "hard",
+      "timestamp": "2026-04-05T14:14:52.870489",
+      "rendered_prompt": "<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.\n\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nSimplify this Python code while keeping the same behavior:\n\n```python\ndef process_order(order):\n    if order is not None:\n        if order.get('items') is not None:\n            if len(order['items']) > 0:\n                total = 0\n                for item in order['items']:\n                    if item.get('price') is not None:\n                        if item.get('quantity') is not None:\n                            total += item['price'] * item['quantity']\n                        else:\n                            total += item['price'] * 1\n                    else:\n                        pass\n                if order.get('discount') is not None:\n                    total = total - (total * order['discount'] / 100)\n                return total\n            else:\n                return 0\n        else:\n            return 0\n    else:\n        return 0\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef process_order(order):\n    if not order or not order.get('items'):\n        return 0\n    \n    total = sum(\n        item.get('price', 0) * item.get('quantity', 1)\n        for item in order['items']\n    )\n    \n    if order.get('discount'):\n        total *= (1 - order['discount'] / 100)\n    \n    return total\n```",
+      "response_length": 322,
+      "elapsed": 6.93,
+      "input_tokens": 447,
+      "output_tokens": 96,
+      "evaluation": {
+        "correctness": {
+          "score": 8,
+          "reason": "Behavior is preserved in nearly all cases. Subtle differences: `not order` catches falsy non-None values (e.g. empty dict), but original only checks `is not None` — however the result is the same since an empty dict has no items. `if order.get('discount'):` skips a 0-value discount, but original would apply it (0% change = no effect), so functionally identical. `item.get('price', 0)` correctly mirrors the original `else: pass` (adds 0). Edge case: a falsy-but-not-None order object would behave differently, but this is practically irrelevant."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "Uses a generator expression with `sum()` instead of a manual accumulator loop, which is idiomatic and slightly more efficient in CPython. Algorithmic complexity is identical O(n). Short-circuit early return avoids unnecessary computation."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Reduced from ~20 lines to 10 lines. No redundant checks, no nested conditionals, no dead code (`else: pass`). Every line carries meaning. The generator expression elegantly replaces the inner loop."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no extra validation, no helper functions, no classes introduced. Strictly answers the ask of simplifying the existing logic with zero additions."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Response is pure code with no preamble, explanation, caveats, or closing remarks. Perfectly code-focused."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Followed the instruction to simplify while keeping the same behavior. The simplifications made are semantically equivalent for all realistic inputs. Minor deduction because `not order` is slightly broader than the original `is not None` check, which is a behavioral change even if inconsequential in practice."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "D_custom_replace",
+      "condition_name": "D. Custom Only (Replace)",
+      "condition_description": "default 제거, custom system prompt만 사용",
+      "use_raw": false,
+      "system_prompt_length": 1026,
+      "test_id": "refactor_2",
+      "category": "refactor",
+      "difficulty": "hard",
+      "timestamp": "2026-04-05T14:15:27.967445",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nSimplify this Python code while keeping the same behavior:\n\n```python\ndef process_order(order):\n    if order is not None:\n        if order.get('items') is not None:\n            if len(order['items']) > 0:\n                total = 0\n                for item in order['items']:\n                    if item.get('price') is not None:\n                        if item.get('quantity') is not None:\n                            total += item['price'] * item['quantity']\n                        else:\n                            total += item['price'] * 1\n                    else:\n                        pass\n                if order.get('discount') is not None:\n                    total = total - (total * order['discount'] / 100)\n                return total\n            else:\n                return 0\n        else:\n            return 0\n    else:\n        return 0\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "```python\ndef process_order(order):\n    if not order or not order.get('items'):\n        return 0\n\n    total = sum(\n        item.get('price', 0) * item.get('quantity', 1)\n        for item in order['items']\n        if item.get('price') is not None\n    )\n\n    if order.get('discount') is not None:\n        total *= (1 - order['discount'] / 100)\n\n    return total\n```",
+      "response_length": 363,
+      "elapsed": 7.88,
+      "input_tokens": 430,
+      "output_tokens": 109,
+      "evaluation": {
+        "correctness": {
+          "score": 8,
+          "reason": "The logic is almost perfectly preserved, but `not order` differs from `order is not None` — a falsy-but-not-None value (e.g., empty dict `{}`) returns 0 in the simplified version but would proceed in the original. Similarly `not order.get('items')` short-circuits on empty list, which the original handles separately via `len > 0`. These are minor but real behavioral differences for edge cases."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Uses a generator expression with `sum()` for a single-pass O(n) computation. The discount is applied with a single multiplication. No wasted work or redundant iterations."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Reduced ~20 lines of deeply nested conditionals to ~9 clean lines. No dead code, no redundant checks, no repeated logic. The use of `get()` with defaults elegantly collapses multiple null checks."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no new classes or abstractions, no extra error handling beyond what was asked. Strictly a simplification of the existing logic with nothing added."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "The response appears to be pure code with no preamble, explanation, disclaimers, or prose. Exactly what was requested — a simplified version of the function."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "The instruction was to simplify while keeping the same behavior. Simplification is excellent, but the subtle behavioral deviation with falsy non-None inputs means it is not a perfect behavior-preserving transformation. Still very close to ideal."
+        }
+      }
+    },
+    {
+      "model": "Qwen3.5-27b",
+      "condition": "E_raw_custom",
+      "condition_name": "E. Raw Prompt (Template 우회)",
+      "condition_description": "chat template 완전 우회, raw text로 직접 제어",
+      "use_raw": true,
+      "system_prompt_length": 1026,
+      "test_id": "refactor_2",
+      "category": "refactor",
+      "difficulty": "hard",
+      "timestamp": "2026-04-05T14:15:56.525992",
+      "rendered_prompt": "<|im_start|>system\nYou are an interactive agent that helps users with software engineering tasks.\n\n# Doing tasks\nThe user will primarily request you to perform software engineering tasks.\nYou are highly capable and often allow users to complete ambitious tasks.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked.\nA bug fix doesn't need surrounding code cleaned up.\nDon't add docstrings, comments, or type annotations to code you didn't change.\nOnly add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen.\nTrust internal code and framework guarantees.\nOnly validate at system boundaries (user input, external APIs).\n\nDon't create helpers, utilities, or abstractions for one-time operations.\nThree similar lines of code is better than a premature abstraction.\n\n# Output efficiency\nIMPORTANT: Go straight to the point. Be extra concise.\nLead with the answer or action, not the reasoning.\nIf you can say it in one sentence, don't use three.<|im_end|>\n<|im_start|>user\nSimplify this Python code while keeping the same behavior:\n\n```python\ndef process_order(order):\n    if order is not None:\n        if order.get('items') is not None:\n            if len(order['items']) > 0:\n                total = 0\n                for item in order['items']:\n                    if item.get('price') is not None:\n                        if item.get('quantity') is not None:\n                            total += item['price'] * item['quantity']\n                        else:\n                            total += item['price'] * 1\n                    else:\n                        pass\n                if order.get('discount') is not None:\n                    total = total - (total * order['discount'] / 100)\n                return total\n            else:\n                return 0\n        else:\n            return 0\n    else:\n        return 0\n```<|im_end|>\n<|im_start|>assistant\n",
+      "response": "<think>\n\n</think>\n\n```python\ndef process_order(order):\n    if not order or not order.get('items'):\n        return 0\n\n    total = sum(\n        item.get('price', 0) * item.get('quantity', 1)\n        for item in order['items']\n    )\n\n    if order.get('discount'):\n        total -= total * order['discount'] / 100\n\n    return total\n```",
+      "response_length": 331,
+      "elapsed": 6.95,
+      "input_tokens": 426,
+      "output_tokens": 96,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Behavior is preserved for all realistic inputs. `not order` correctly handles None and empty dict. `not order.get('items')` correctly handles None and empty list (matching the original's len>0 check). `item.get('price', 0)` correctly skips no-price items by contributing 0. Only edge case difference: `if order.get('discount')` skips discount=0, but that has zero effect on the total anyway."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "Replaced nested loops with a clean generator expression fed into sum(), which is idiomatic and efficient. Same O(n) complexity but with less overhead and better readability."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Collapsed ~20 lines of deeply nested conditionals into 9 clean lines. No redundant checks, no dead code (the original's `else: pass` is gone), and the logic is expressed at its minimal essence."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no extra validation, no helper classes or patterns added. Strictly and only simplified the existing logic as requested."
+        },
+        "response_bloat": {
+          "score": 9,
+          "reason": "Response is almost entirely code with no preamble, explanation, or disclaimers. The empty <think> block is a minor artifact but adds no actual bloat to the response content."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Instruction was to simplify while keeping the same behavior — the response does exactly that, nothing more and nothing less."
+        }
+      }
+    }
+  ]
+}

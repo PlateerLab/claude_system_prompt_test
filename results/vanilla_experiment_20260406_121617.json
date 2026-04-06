@@ -1,0 +1,815 @@
+{
+  "meta": {
+    "experiment": "vanilla_vs_distilled_harness",
+    "timestamp": "2026-04-06T12:07:11.330186",
+    "alibaba_url": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "alibaba_model": "qwen3.5-27b",
+    "vllm_url": "http://118.223.251.22:10051/v1/chat/completions",
+    "vllm_model": "Qwen3.5-27b",
+    "temperature": 0.3,
+    "max_tokens": 4096,
+    "system_prompts": {
+      "vanilla_raw": "(없음)",
+      "vanilla_harness": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "distilled_harness": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls."
+    },
+    "eval_prompt_coding": "You are a strict code quality evaluator. Score this coding response on 6 criteria (1-10 each).\n\n## Task\n{task_prompt}\n\n## Response (from: {condition_name})\n{response}\n\n## Scoring criteria (be STRICT, especially on 3/4/5)\n1. correctness: Does the code work correctly? Logic bugs? Missing features? (1=broken, 10=perfect)\n2. efficiency: Is the algorithm sound and efficient? (1=poor, 10=optimal)\n3. conciseness: Is the code free of unnecessary bloat? Penalize: unused imports, verbose variable names, unnecessary blank lines, redundant code (1=very bloated, 10=minimal)\n4. no_overengineering: Did it avoid adding UNNECESSARY things? Penalize heavily: type hints not asked for, docstrings not asked for, error handling for impossible scenarios, unnecessary abstract classes/interfaces, design patterns that add complexity without value (1=heavily overengineered, 10=just what was asked)\n5. response_bloat: Is the text response free of unnecessary prose? Penalize: long explanations before code, step-by-step reasoning not asked for, disclaimers, restating the problem (1=very bloated text, 10=mostly just code)\n6. instruction_following: Did it follow instructions precisely? All required features implemented? (1=missed requirements, 10=perfect)\n\nReturn ONLY this JSON (no other text):\n{{\"correctness\":{{\"score\":N,\"reason\":\"one line\"}}, \"efficiency\":{{\"score\":N,\"reason\":\"one line\"}}, \"conciseness\":{{\"score\":N,\"reason\":\"one line\"}}, \"no_overengineering\":{{\"score\":N,\"reason\":\"one line\"}}, \"response_bloat\":{{\"score\":N,\"reason\":\"one line\"}}, \"instruction_following\":{{\"score\":N,\"reason\":\"one line\"}}}}",
+    "eval_prompt_noncoding": "You are a strict response quality evaluator. Score this non-coding response on 6 criteria (1-10 each).\n\n## Task\n{task_prompt}\n\n## Response (from: {condition_name})\n{response}\n\n## Scoring criteria (be STRICT, especially on 3/4/5)\n1. accuracy: Is the information factually correct? Any misleading claims? (1=wrong, 10=perfect)\n2. completeness: Does it cover the key points the question asks for? (1=missing most, 10=comprehensive)\n3. conciseness: Is it free of unnecessary filler, repetition, and padding? (1=very padded, 10=tight and dense)\n4. no_overexplaining: Did it avoid explaining things that weren't asked? Penalize: unsolicited background, basic definitions of terms the questioner clearly knows, tangential topics (1=heavily overexplains, 10=just what was asked)\n5. response_bloat: Is it free of unnecessary prose structure? Penalize: excessive headers, bullet-point spam, restating the question, \"let me explain\", disclaimers, conclusions that repeat the intro (1=very bloated, 10=lean)\n6. actionability: Are the insights practical and directly useful? Not vague platitudes? (1=generic fluff, 10=specific and actionable)\n\nReturn ONLY this JSON (no other text):\n{{\"accuracy\":{{\"score\":N,\"reason\":\"one line\"}}, \"completeness\":{{\"score\":N,\"reason\":\"one line\"}}, \"conciseness\":{{\"score\":N,\"reason\":\"one line\"}}, \"no_overexplaining\":{{\"score\":N,\"reason\":\"one line\"}}, \"response_bloat\":{{\"score\":N,\"reason\":\"one line\"}}, \"actionability\":{{\"score\":N,\"reason\":\"one line\"}}}}",
+    "tasks": [
+      {
+        "id": "coding_lru_cache",
+        "name": "LRU Cache with TTL",
+        "category": "coding",
+        "prompt": "Write a Python LRU cache with TTL (time-to-live) expiration:\n- get(key) - returns value or None if expired/missing\n- put(key, value, ttl_seconds=60) - stores with expiration\n- Maximum capacity with LRU eviction when full\n- Thread-safe\n\nImplement as a single class LRUCache. Include a brief usage example."
+      },
+      {
+        "id": "coding_group_by",
+        "name": "group_by 함수",
+        "category": "coding",
+        "prompt": "Write a Python function group_by(items, key_fn) that groups a list of items by the result of key_fn, returning a dict of lists. Do not use itertools.groupby."
+      },
+      {
+        "id": "coding_merge_intervals",
+        "name": "Merge Intervals",
+        "category": "coding",
+        "prompt": "Write a Python function merge_intervals(intervals) that takes a list of [start, end] intervals and returns a new list with all overlapping intervals merged. Example: [[1,3],[2,6],[8,10],[15,18]] -> [[1,6],[8,10],[15,18]]"
+      },
+      {
+        "id": "explain_redis_pubsub",
+        "name": "Redis Pub/Sub 설명",
+        "category": "non-coding",
+        "prompt": "Explain how Redis Pub/Sub works, when to use it, and its limitations compared to a dedicated message broker like RabbitMQ or Kafka."
+      },
+      {
+        "id": "review_code",
+        "name": "코드 리뷰",
+        "category": "non-coding",
+        "prompt": "Review this Python code and identify all issues:\n\n```python\nimport json\nimport os\nimport sys\nimport re\nfrom typing import Optional, List, Dict, Any, Union\n\nclass UserManager:\n    _instance = None\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        self.users = {}\n        self.db = None\n\n    def get_user(self, user_id):\n        try:\n            if user_id in self.users:\n                return self.users[user_id]\n            user = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n            self.users[user_id] = user\n            return user\n        except Exception as e:\n            print(f\"Error: {e}\")\n            return None\n\n    def delete_user(self, user_id):\n        try:\n            self.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n            if user_id in self.users:\n                del self.users[user_id]\n            return True\n        except:\n            return False\n```"
+      },
+      {
+        "id": "architecture_decision",
+        "name": "아키텍처 의사결정",
+        "category": "non-coding",
+        "prompt": "We have a monolithic Django app (50k LOC, 10 developers, ~500 RPS). The team wants to break out the payment processing module into a separate service. What are the key considerations, risks, and your recommendation?"
+      }
+    ]
+  },
+  "results": [
+    {
+      "task_id": "coding_lru_cache",
+      "task_name": "LRU Cache with TTL",
+      "task_category": "coding",
+      "task_prompt": "Write a Python LRU cache with TTL (time-to-live) expiration:\n- get(key) - returns value or None if expired/missing\n- put(key, value, ttl_seconds=60) - stores with expiration\n- Maximum capacity with LRU eviction when full\n- Thread-safe\n\nImplement as a single class LRUCache. Include a brief usage example.",
+      "condition": "vanilla_raw",
+      "condition_name": "Col1: 바닐라 Qwen3.5-27B Raw",
+      "system_prompt_used": "(없음)",
+      "timestamp": "2026-04-06T12:07:46.804689",
+      "response": "```python\nimport threading\nimport time\nfrom collections import OrderedDict\nfrom typing import Any, Optional\n\nclass LRUCache:\n    \"\"\"\n    Thread-safe LRU Cache with Time-To-Live (TTL) expiration.\n    \n    Attributes:\n        capacity (int): Maximum number of items the cache can hold.\n    \"\"\"\n    \n    def __init__(self, capacity: int):\n        if capacity <= 0:\n            raise ValueError(\"Cache capacity must be greater than 0.\")\n        \n        self.capacity = capacity\n        # OrderedDict maintains insertion order; keys moved to end are MRU.\n        self.cache: OrderedDict[str, tuple[Any, float]] = OrderedDict()\n        self.lock = threading.Lock()\n\n    def get(self, key: str) -> Optional[Any]:\n        \"\"\"\n        Retrieve value by key. Returns None if key is missing or expired.\n        Updates access order (LRU) if valid.\n        \"\"\"\n        with self.lock:\n            if key not in self.cache:\n                return None\n            \n            value, expire_time = self.cache[key]\n            \n            # Check if TTL has expired\n            if time.time() > expire_time:\n                del self.cache[key]\n                return None\n            \n            # Move key to end to mark as Most Recently Used\n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key: str, value: Any, ttl_seconds: int = 60) -> None:\n        \"\"\"\n        Store a value with a specific TTL. \n        If the cache is full, evicts the Least Recently Used item.\n        \"\"\"\n        with self.lock:\n            if key in self.cache:\n                # Key exists: update value, reset TTL, and move to end\n                self.cache[key] = (value, time.time() + ttl_seconds)\n                self.cache.move_to_end(key)\n            else:\n                # Key is new: check capacity constraints\n                if len(self.cache) >= self.capacity:\n                    # popitem(last=False) removes the first item (LRU)\n                    self.cache.popitem(last=False)\n                \n                # Insert new item with calculated expiration timestamp\n                self.cache[key] = (value, time.time() + ttl_seconds)\n\n\n# ==========================================\n# Usage Example\n# ==========================================\nif __name__ == \"__main__\":\n    # Initialize cache with max capacity of 2\n    cache = LRUCache(capacity=2)\n\n    # 1. Basic Put/Get\n    cache.put(\"a\", 1, ttl_seconds=10)\n    cache.put(\"b\", 2, ttl_seconds=10)\n    \n    print(f\"Get 'a': {cache.get('a')}\")  # Output: 1\n    print(f\"Get 'b': {cache.get('b')}\")  # Output: 2\n    \n    # 2. LRU Eviction\n    # Adding 'c' should evict 'a' (since 'b' was accessed last)\n    cache.put(\"c\", 3, ttl_seconds=10)\n    \n    print(f\"Get 'a' (evicted): {cache.get('a')}\")  # Output: None\n    print(f\"Get 'c': {cache.get('c')}\")            # Output: 3\n    \n    # 3. TTL Expiration\n    cache.put(\"x\", 100, ttl_seconds=1)\n    print(f\"Get 'x' immediately: {cache.get('x')}\") # Output: 100\n    \n    # Wait for TTL to expire\n    time.sleep(2) \n    \n    print(f\"Get 'x' after expiry: {cache.get('x')}\") # Output: None\n    \n    # 4. Thread Safety Demonstration (Conceptual)\n    # Multiple threads calling get/put simultaneously will be protected by self.lock\n    # preventing race conditions on the OrderedDict.\n```",
+      "response_length": 3299,
+      "elapsed": 35.47,
+      "input_tokens": 86,
+      "output_tokens": 3271,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "All features work correctly: LRU eviction, TTL expiration, thread safety, get/put API with correct signatures."
+        },
+        "efficiency": {
+          "score": 8,
+          "reason": "O(1) get/put using OrderedDict is optimal, but expired entries are only cleaned on access (lazy eviction), not proactively, which wastes capacity."
+        },
+        "conciseness": {
+          "score": 7,
+          "reason": "Code is reasonably concise but has some unnecessary blank lines and overly descriptive inline comments."
+        },
+        "no_overengineering": {
+          "score": 4,
+          "reason": "Type hints (Optional, Any, OrderedDict type annotation), class docstring, method docstrings, and ValueError for capacity<=0 were all unrequested additions."
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "No prose before/after code, but the usage example is longer than needed with numbered sections and conceptual thread-safety commentary."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "All requirements met: get/put with correct signatures, max capacity with LRU eviction, thread-safe, usage example included."
+        }
+      }
+    },
+    {
+      "task_id": "coding_lru_cache",
+      "task_name": "LRU Cache with TTL",
+      "task_category": "coding",
+      "task_prompt": "Write a Python LRU cache with TTL (time-to-live) expiration:\n- get(key) - returns value or None if expired/missing\n- put(key, value, ttl_seconds=60) - stores with expiration\n- Maximum capacity with LRU eviction when full\n- Thread-safe\n\nImplement as a single class LRUCache. Include a brief usage example.",
+      "condition": "vanilla_harness",
+      "condition_name": "Col2: 바닐라 Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:08:04.520334",
+      "response": "```python\nfrom collections import OrderedDict\nimport threading\nimport time\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache = OrderedDict()  # key -> (value, expiry_time)\n        self.lock = threading.RLock()\n\n    def get(self, key) -> any:\n        with self.lock:\n            if key not in self.cache:\n                return None\n            \n            value, expiry = self.cache[key]\n            if time.time() > expiry:\n                del self.cache[key]\n                return None\n            \n            # Move to end (most recently used)\n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds: int = 60):\n        with self.lock:\n            expiry = time.time() + ttl_seconds\n            \n            if key in self.cache:\n                self.cache.move_to_end(key)\n            \n            self.cache[key] = (value, expiry)\n            \n            # Evict oldest entries if over capacity\n            while len(self.cache) > self.capacity:\n                self.cache.popitem(last=False)\n            \n            # Clean up expired entries\n            self._cleanup_expired()\n\n    def _cleanup_expired(self):\n        now = time.time()\n        expired_keys = [k for k, (_, exp) in self.cache.items() if now > exp]\n        for key in expired_keys:\n            del self.cache[key]\n\n\n# Usage example\nif __name__ == \"__main__\":\n    cache = LRUCache(capacity=3)\n    \n    cache.put(\"a\", 1, ttl_seconds=5)\n    cache.put(\"b\", 2, ttl_seconds=5)\n    cache.put(\"c\", 3, ttl_seconds=5)\n    \n    print(cache.get(\"a\"))  # 1\n    print(cache.get(\"b\"))  # 2\n    \n    cache.put(\"d\", 4)  # Evicts \"c\" (LRU)\n    print(cache.get(\"c\"))  # None\n    \n    time.sleep(6)\n    print(cache.get(\"a\"))  # None (expired)\n```",
+      "response_length": 1815,
+      "elapsed": 6.73,
+      "input_tokens": 705,
+      "output_tokens": 610,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 8,
+          "reason": "Works correctly but put() evicts LRU before cleaning expired, so an expired entry could cause a valid entry to be evicted instead of the expired one being cleaned first."
+        },
+        "efficiency": {
+          "score": 7,
+          "reason": "_cleanup_expired scans all entries O(n) on every put(), which is unnecessary overhead; lazy expiration on get() is sufficient."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Clean and minimal code with no unnecessary bloat."
+        },
+        "no_overengineering": {
+          "score": 8,
+          "reason": "Minor: type hint on get() return and ttl_seconds parameter, _cleanup_expired on every put is unnecessary extra logic."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Pure code with minimal usage example, no prose or explanations."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "All requirements met: get, put with ttl, LRU eviction, thread-safe, usage example."
+        }
+      }
+    },
+    {
+      "task_id": "coding_lru_cache",
+      "task_name": "LRU Cache with TTL",
+      "task_category": "coding",
+      "task_prompt": "Write a Python LRU cache with TTL (time-to-live) expiration:\n- get(key) - returns value or None if expired/missing\n- put(key, value, ttl_seconds=60) - stores with expiration\n- Maximum capacity with LRU eviction when full\n- Thread-safe\n\nImplement as a single class LRUCache. Include a brief usage example.",
+      "condition": "distilled_harness",
+      "condition_name": "Col3: Distilled Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:08:47.540023",
+      "response": "```python\nimport threading\nimport time\nfrom collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache = OrderedDict()\n        self.lock = threading.RLock()\n\n    def get(self, key) -> any:\n        with self.lock:\n            if key not in self.cache:\n                return None\n            \n            value, expiry = self.cache[key]\n            \n            # Check if expired\n            if time.time() > expiry:\n                del self.cache[key]\n                return None\n            \n            # Move to end (most recently used)\n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds: int = 60) -> None:\n        with self.lock:\n            expiry = time.time() + ttl_seconds\n            \n            if key in self.cache:\n                # Update existing key\n                self.cache[key] = (value, expiry)\n                self.cache.move_to_end(key)\n            else:\n                # Evict if at capacity\n                if len(self.cache) >= self.capacity:\n                    self.cache.popitem(last=False)\n                \n                self.cache[key] = (value, expiry)\n\n\n# Usage example\nif __name__ == \"__main__\":\n    cache = LRUCache(capacity=2)\n    \n    cache.put(\"a\", 1, ttl_seconds=5)\n    cache.put(\"b\", 2, ttl_seconds=5)\n    \n    print(cache.get(\"a\"))  # Output: 1\n    print(cache.get(\"b\"))  # Output: 2\n    \n    # Add third item, evicts \"a\" (least recently used)\n    cache.put(\"c\", 3)\n    print(cache.get(\"a\"))  # Output: None\n    \n    # Wait for TTL to expire\n    time.sleep(6)\n    print(cache.get(\"b\"))  # Output: None (expired)\n    print(cache.get(\"c\"))  # Output: 3\n```",
+      "response_length": 1737,
+      "elapsed": 31.23,
+      "input_tokens": 707,
+      "output_tokens": 436,
+      "model": "vllm/Qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 7,
+          "reason": "Bug: after getting 'a' then 'b', 'a' is most recently used before 'b', so adding 'c' should evict 'a' — wait, 'a' was accessed first, then 'b', so 'a' is LRU. The comment says evicts 'a' which is correct. However, after sleep(6), 'c' was added with default ttl=60 but 'b' had ttl=5, so b=None and c=3 is correct. No lazy cleanup of expired entries during put, but functionally acceptable."
+        },
+        "efficiency": {
+          "score": 8,
+          "reason": "O(1) get/put using OrderedDict is optimal; no background cleanup of expired entries wastes memory but is a reasonable tradeoff."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Clean and minimal implementation with only minor extras like the return type hints."
+        },
+        "no_overengineering": {
+          "score": 7,
+          "reason": "Type hints on get/put (-> any, -> None, : int) were not requested and add minor clutter; RLock instead of Lock is unnecessary but harmless."
+        },
+        "response_bloat": {
+          "score": 9,
+          "reason": "Minimal text, just code with inline comments and a usage example as requested."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "All four requirements met: get, put with TTL, LRU eviction, thread-safe; includes usage example as requested."
+        }
+      }
+    },
+    {
+      "task_id": "coding_group_by",
+      "task_name": "group_by 함수",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function group_by(items, key_fn) that groups a list of items by the result of key_fn, returning a dict of lists. Do not use itertools.groupby.",
+      "condition": "vanilla_raw",
+      "condition_name": "Col1: 바닐라 Qwen3.5-27B Raw",
+      "system_prompt_used": "(없음)",
+      "timestamp": "2026-04-06T12:09:19.929493",
+      "response": "Here's a Python function that groups a list of items based on the result of a provided key function, returning a dictionary where each key maps to a list of corresponding items. This implementation avoids using `itertools.groupby`:\n\n```python\ndef group_by(items, key_fn):\n    \"\"\"\n    Groups items by the result of applying key_fn to each item.\n\n    Args:\n        items (list): The list of items to group.\n        key_fn (callable): A function that takes an item and returns a hashable key.\n\n    Returns:\n        dict: A dictionary mapping each unique key to a list of items.\n    \"\"\"\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        if key not in result:\n            result[key] = []\n        result[key].append(item)\n    return result\n```\n\n### Example Usage\n\n```python\n# Group numbers by even/odd\nnumbers = [1, 2, 3, 4, 5, 6]\ngrouped = group_by(numbers, lambda x: 'even' if x % 2 == 0 else 'odd')\nprint(grouped)\n# Output: {'odd': [1, 3, 5], 'even': [2, 4, 6]}\n\n# Group strings by length\nwords = ['apple', 'bat', 'cat', 'dog', 'elephant']\ngrouped = group_by(words, len)\nprint(grouped)\n# Output: {5: ['apple'], 3: ['bat', 'cat', 'dog'], 8: ['elephant']}\n\n# Group dictionaries by a field\nusers = [\n    {'name': 'Alice', 'age': 25},\n    {'name': 'Bob', 'age': 30},\n    {'name': 'Charlie', 'age': 25}\n]\ngrouped = group_by(users, lambda u: u['age'])\nprint(grouped)\n# Output: {25: [{'name': 'Alice', 'age': 25}, {'name': 'Charlie', 'age': 25}], \n#          30: [{'name': 'Bob', 'age': 30}]}\n\n# Edge case: empty list\nprint(group_by([], lambda x: x))\n# Output: {}\n```\n\n### Alternative Implementation Using `setdefault`\n\nYou can also use `dict.setdefault()` for a more concise version:\n\n```python\ndef group_by(items, key_fn):\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        result.setdefault(key, []).append(item)\n    return result\n```\n\n### Notes\n\n- **Time Complexity:** O(n), where n is the number of items.\n- **Space Complexity:** O(n) for storing grouped items.\n- **Key Requirement:** The result of `key_fn` must be hashable (e.g., int, str, tuple).\n- **Order Preservation:** Items within each group maintain their original order from the input list.",
+      "response_length": 2193,
+      "elapsed": 18.01,
+      "input_tokens": 46,
+      "output_tokens": 983,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Code is fully correct, handles all cases properly including empty lists."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n) time and space, optimal for this problem."
+        },
+        "conciseness": {
+          "score": 6,
+          "reason": "Main implementation is fine but provides a redundant alternative implementation and excessive example code."
+        },
+        "no_overengineering": {
+          "score": 4,
+          "reason": "Docstring not asked for, alternative implementation not asked for, complexity analysis not asked for, extensive notes section unnecessary."
+        },
+        "response_bloat": {
+          "score": 2,
+          "reason": "Massive response bloat: intro prose, 4 usage examples, alternative implementation, notes section with complexity analysis—none of which were requested."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Function signature matches, returns dict of lists, does not use itertools.groupby."
+        }
+      }
+    },
+    {
+      "task_id": "coding_group_by",
+      "task_name": "group_by 함수",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function group_by(items, key_fn) that groups a list of items by the result of key_fn, returning a dict of lists. Do not use itertools.groupby.",
+      "condition": "vanilla_harness",
+      "condition_name": "Col2: 바닐라 Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:09:33.370644",
+      "response": "```python\ndef group_by(items, key_fn):\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        if key not in result:\n            result[key] = []\n        result[key].append(item)\n    return result\n```",
+      "response_length": 218,
+      "elapsed": 2.19,
+      "input_tokens": 665,
+      "output_tokens": 131,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Correctly groups items by key_fn result, returns dict of lists, handles all cases properly."
+        },
+        "efficiency": {
+          "score": 8,
+          "reason": "Sound O(n) algorithm; could use dict.setdefault or defaultdict for slight improvement but this is fine."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "The if-not-in pattern is slightly verbose compared to setdefault/defaultdict, but otherwise minimal."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstrings, no error handling, no unnecessary abstractions—just the function."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Pure code with zero explanatory prose."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Implements group_by(items, key_fn) returning dict of lists without itertools.groupby."
+        }
+      }
+    },
+    {
+      "task_id": "coding_group_by",
+      "task_name": "group_by 함수",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function group_by(items, key_fn) that groups a list of items by the result of key_fn, returning a dict of lists. Do not use itertools.groupby.",
+      "condition": "distilled_harness",
+      "condition_name": "Col3: Distilled Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:09:47.225880",
+      "response": "```python\ndef group_by(items, key_fn):\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        result.setdefault(key, []).append(item)\n    return result\n```",
+      "response_length": 174,
+      "elapsed": 3.56,
+      "input_tokens": 667,
+      "output_tokens": 48,
+      "model": "vllm/Qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Correctly groups items by key_fn result using setdefault, handles all cases properly"
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Single pass O(n) with optimal setdefault usage"
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Minimal code, no unnecessary lines or variables"
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, docstrings, or error handling added beyond what was asked"
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Pure code only, zero explanatory prose"
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Returns dict of lists, uses key_fn, no itertools.groupby"
+        }
+      }
+    },
+    {
+      "task_id": "coding_merge_intervals",
+      "task_name": "Merge Intervals",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function merge_intervals(intervals) that takes a list of [start, end] intervals and returns a new list with all overlapping intervals merged. Example: [[1,3],[2,6],[8,10],[15,18]] -> [[1,6],[8,10],[15,18]]",
+      "condition": "vanilla_raw",
+      "condition_name": "Col1: 바닐라 Qwen3.5-27B Raw",
+      "system_prompt_used": "(없음)",
+      "timestamp": "2026-04-06T12:10:06.979399",
+      "response": "Here's a Python function that merges overlapping intervals from a given list of `[start, end]` pairs:\n\n```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merges all overlapping intervals in the input list.\n\n    Args:\n        intervals (List[List[int]]): A list of [start, end] intervals.\n\n    Returns:\n        List[List[int]]: A new list with overlapping intervals merged.\n    \"\"\"\n    if not intervals:\n        return []\n\n    # Sort intervals by start time\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n\n    merged = [sorted_intervals[0][:]]  # Create a copy to avoid modifying input\n\n    for current in sorted_intervals[1:]:\n        last = merged[-1]\n        if current[0] <= last[1]:\n            # Overlapping intervals: merge them\n            last[1] = max(last[1], current[1])\n        else:\n            # Non-overlapping: add as a new interval\n            merged.append(current[:])\n\n    return merged\n```\n\n### Example Usage\n\n```python\nprint(merge_intervals([[1,3],[2,6],[8,10],[15,18]]))\n# Output: [[1, 6], [8, 10], [15, 18]]\n\nprint(merge_intervals([[1,4],[4,5]]))\n# Output: [[1, 5]]\n\nprint(merge_intervals([[1,4],[2,3]]))\n# Output: [[1, 4]]\n\nprint(merge_intervals([[1,4],[0,4]]))\n# Output: [[0, 4]]\n\nprint(merge_intervals([]))\n# Output: []\n\nprint(merge_intervals([[1,2]]))\n# Output: [[1, 2]]\n```\n\n### How It Works\n\n1. **Sort Intervals:** By start time to ensure sequential processing.\n2. **Initialize Result:** Start with the first interval.\n3. **Iterate & Merge:** For each subsequent interval:\n   - If it overlaps with the last merged interval (`current_start <= last_end`), extend the end time.\n   - Otherwise, append it as a new interval.\n4. **Return Merged List.**\n\n### Complexity\n\n- **Time Complexity:** O(n log n) due to sorting; iteration is O(n).\n- **Space Complexity:** O(n) for the output list.",
+      "response_length": 1828,
+      "elapsed": 9.6,
+      "input_tokens": 80,
+      "output_tokens": 915,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Algorithm is correct, handles edge cases like empty input, fully contained intervals, and adjacent intervals properly."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) sort + O(n) scan is optimal for this problem."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Code is clean but the `[:]` copy operations add minor verbosity; otherwise well-structured."
+        },
+        "no_overengineering": {
+          "score": 4,
+          "reason": "Includes a full docstring with Args/Returns, type hint annotations in docstring, and defensive copying not asked for—all unnecessary additions."
+        },
+        "response_bloat": {
+          "score": 3,
+          "reason": "Extensive 'How It Works' section, 6 example usages, complexity analysis, and intro prose—none of which were requested."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Function name, signature, and behavior match the specification exactly."
+        }
+      }
+    },
+    {
+      "task_id": "coding_merge_intervals",
+      "task_name": "Merge Intervals",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function merge_intervals(intervals) that takes a list of [start, end] intervals and returns a new list with all overlapping intervals merged. Example: [[1,3],[2,6],[8,10],[15,18]] -> [[1,6],[8,10],[15,18]]",
+      "condition": "vanilla_harness",
+      "condition_name": "Col2: 바닐라 Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:10:19.242898",
+      "response": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort by start time\n    intervals.sort()\n    \n    merged = [intervals[0]]\n    \n    for current in intervals[1:]:\n        last = merged[-1]\n        # Check if overlapping\n        if current[0] <= last[1]:\n            # Merge by extending the end\n            last[1] = max(last[1], current[1])\n        else:\n            merged.append(current)\n    \n    return merged\n```",
+      "response_length": 459,
+      "elapsed": 2.67,
+      "input_tokens": 699,
+      "output_tokens": 197,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Correct algorithm, but mutates input list in-place via sort() and last[1] assignment rather than returning a truly new list as specified."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) sort + O(n) merge is the optimal approach."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Clean and minimal with only essential comments."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No unnecessary additions—just the function as requested."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Pure code with no extra prose or explanations."
+        },
+        "instruction_following": {
+          "score": 9,
+          "reason": "Implements merge correctly; minor issue is it mutates input rather than returning a new list as 'returns a new list' implies."
+        }
+      }
+    },
+    {
+      "task_id": "coding_merge_intervals",
+      "task_name": "Merge Intervals",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function merge_intervals(intervals) that takes a list of [start, end] intervals and returns a new list with all overlapping intervals merged. Example: [[1,3],[2,6],[8,10],[15,18]] -> [[1,6],[8,10],[15,18]]",
+      "condition": "distilled_harness",
+      "condition_name": "Col3: Distilled Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:10:37.868019",
+      "response": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n\n    # Sort intervals by start time\n    intervals.sort(key=lambda x: x[0])\n\n    merged = [intervals[0]]\n\n    for current in intervals[1:]:\n        last = merged[-1]\n        if current[0] <= last[1]:\n            # Overlapping intervals, merge them\n            merged[-1] = [last[0], max(last[1], current[1])]\n        else:\n            # Non-overlapping, add to result\n            merged.append(current)\n\n    return merged\n```",
+      "response_length": 506,
+      "elapsed": 9.8,
+      "input_tokens": 701,
+      "output_tokens": 136,
+      "model": "vllm/Qwen3.5-27b",
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Algorithm correctly handles sorting, merging overlapping/adjacent intervals, and edge cases like empty input."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) sort + O(n) scan is the optimal approach for this problem."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Clean and minimal code; inline comments are brief but could be omitted for maximum conciseness."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, docstrings, or unnecessary error handling—just the function as requested."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Pure code with no surrounding prose or explanations."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Returns a new merged list exactly as specified, matches expected output format."
+        }
+      }
+    },
+    {
+      "task_id": "explain_redis_pubsub",
+      "task_name": "Redis Pub/Sub 설명",
+      "task_category": "non-coding",
+      "task_prompt": "Explain how Redis Pub/Sub works, when to use it, and its limitations compared to a dedicated message broker like RabbitMQ or Kafka.",
+      "condition": "vanilla_raw",
+      "condition_name": "Col1: 바닐라 Qwen3.5-27B Raw",
+      "system_prompt_used": "(없음)",
+      "timestamp": "2026-04-06T12:11:02.402695",
+      "response": "Redis Pub/Sub (Publish/Subscribe) is a messaging pattern built into Redis that allows clients to publish messages to named channels and other clients to subscribe to those channels to receive the messages in real time. It's lightweight and fast but lacks some features of more robust message brokers like RabbitMQ or Apache Kafka.\n\n---\n\n## 1. How Redis Pub/Sub Works\n\n### Core Concepts\n\n- **Channels**: Named topics to which messages are published.\n- **Publishers**: Clients that send messages to channels.\n- **Subscribers**: Clients that listen to one or more channels for incoming messages.\n\n### Basic Flow\n\n```bash\n# Terminal 1: Subscribe to channel 'news'\nSUBSCRIBE news\n\n# Terminal 2: Publish message to 'news'\nPUBLISH news \"Breaking news!\"\n```\n\nWhen a message is published, all active subscribers on that channel receive it immediately.\n\n### Key Commands\n\n| Command     | Description                          |\n|-------------|--------------------------------------|\n| `PUBLISH`   | Send a message to a channel          |\n| `SUBSCRIBE` | Subscribe to one or more channels    |\n| `PSUBSCRIBE`| Subscribe using pattern matching     |\n| `UNSUBSCRIBE` | Unsubscribe from specific channels |\n| `PUNSUBSCRIBE` | Unsubscribe from pattern channels |\n\n### Example (Python)\n\n```python\nimport redis\n\nr = redis.Redis()\n\n# Publisher\nr.publish('orders', '{\"order_id\": 123}')\n\n# Subscriber\npubsub = r.pubsub()\npubsub.subscribe('orders')\nfor message in pubsub.listen():\n    if message['type'] == 'message':\n        print(f\"Received: {message['data']}\")\n```\n\n---\n\n## 2. When to Use Redis Pub/Sub\n\n### ✅ Ideal Use Cases\n\n- **Real-time notifications** (e.g., chat apps, live updates)\n- **Event broadcasting** across multiple services\n- **Simple decoupling** between components\n- **Low-latency internal communication** within microservices\n- **Prototyping or MVPs** where simplicity matters\n\n### ⚠️ Not Suitable For\n\n- **Message persistence** – no guarantee of delivery after subscriber disconnects\n- **High reliability requirements** – no acknowledgments or retries\n- **Complex routing or fan-out patterns**\n- **Scalable event streaming** with ordering guarantees\n\n---\n\n## 3. Limitations vs. Dedicated Message Brokers\n\n| Feature                  | Redis Pub/Sub         | RabbitMQ / Kafka              |\n|--------------------------|------------------------|-------------------------------|\n| **Message Persistence**  | ❌ No                  | ✅ Yes                        |\n| **Delivery Guarantee**   | ❌ At-most-once        | ✅ At-least-once / Exactly-once |\n| **Message Queueing**     | ❌ No                  | ✅ Yes                        |\n| **Consumer Acknowledgment** | ❌ No               | ✅ Yes                        |\n| **Routing & Filtering**  | ❌ Limited             | ✅ Advanced                   |\n| **Ordering Guarantees**  | ❌ None                | ✅ Per-partition (Kafka)      |\n| **Backpressure Handling**| ❌ None                | ✅ Yes                        |\n| **Scalability**          | ⚠️ Single-node focus   | ✅ Distributed clusters       |\n| **Replay Capability**    | ❌ No                  | ✅ Yes (Kafka)                |\n| **Dead Letter Queues**   | ❌ No                  | ✅ Yes                        |\n\n### Practical Comparison\n\n#### Scenario 1: Real-Time Notifications\n- ✅ Redis Pub/Sub: Fast, simple, ideal for ephemeral events.\n- ❌ RabbitMQ/Kafka: Overkill unless persistence/reliability needed.\n\n#### Scenario 2: Order Processing Pipeline\n- ❌ Redis Pub/Sub: Risk of lost orders if consumer crashes.\n- ✅ RabbitMQ/Kafka: Ensures processing even during outages.\n\n#### Scenario 3: Event Sourcing / Audit Trail\n- ❌ Redis Pub/Sub: Cannot replay past events.\n- ✅ Kafka: Supports log-based replay and retention.\n\n---\n\n## 4. Best Practices & Alternatives\n\n### If You Must Use Redis Pub/Sub\n\n- Treat messages as fire-and-forget\n- Implement client-side retry logic if needed\n- Monitor subscriber health and reconnection behavior\n- Avoid critical business logic relying solely on Pub/Sub\n\n### Better Alternatives\n\n- **RabbitMQ**: For reliable queues, routing, and ACKs\n- **Apache Kafka**: For high-throughput, ordered event streams\n- **Redis Streams**: A more persistent, queue-like alternative within Redis\n\nExample: Using Redis Streams instead of Pub/Sub\n\n```python\nr.xadd('orders', {'order_id': '123'})\nconsumer = r.xreadgroup('mygroup', 'consumer1', {'orders': '>'}, count=10)\n```\n\n---\n\n## 5. Summary Table\n\n| Aspect                 | Redis Pub/Sub           | RabbitMQ / Kafka            |\n|------------------------|--------------------------|------------------------------|\n| Complexity             | Low                      | Medium to High               |\n| Setup Time             | Minutes                  | Hours to Days                |\n| Reliability            | Low                      | High                         |\n| Throughput             | High                     | Very High                    |\n| Persistence            | None                     | Configurable                 |\n| Ordering               | None                     | Guaranteed (Kafka)           |\n| Cost                   | Free (with Redis)        | Higher operational cost      |\n\n---\n\n## Final Recommendation\n\nUse **Redis Pub/Sub** when:\n- You need fast, simple, real-time messaging\n- Message loss is acceptable\n- You're building prototypes or non-critical systems\n\nChoose **RabbitMQ or Kafka** when:\n- Message durability and delivery guarantees matter\n- You need advanced routing, retries, or replay capabilities\n- Your system requires scalability and fault tolerance\n\nFor production-grade messaging, consider Redis Streams or a dedicated broker over Redis Pub/Sub.",
+      "response_length": 5671,
+      "elapsed": 15.58,
+      "input_tokens": 38,
+      "output_tokens": 1356,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "Technically correct throughout; minor nit: Redis Pub/Sub does preserve per-channel ordering on a single node, marked as 'None' in the table."
+        },
+        "completeness": {
+          "score": 9,
+          "reason": "Covers how it works, when to use, limitations, and even suggests Redis Streams as alternative—very thorough."
+        },
+        "conciseness": {
+          "score": 4,
+          "reason": "Massive repetition: two near-identical comparison tables, summary restates intro, 'Final Recommendation' duplicates 'When to Use' section."
+        },
+        "no_overexplaining": {
+          "score": 5,
+          "reason": "Basic concepts like what a channel/publisher/subscriber is, bash terminal examples, and best-practices section go beyond what was asked."
+        },
+        "response_bloat": {
+          "score": 3,
+          "reason": "Excessive headers (5 numbered sections + sub-sections), two redundant comparison tables, emoji-laden bullet lists, and a 'Final Recommendation' that repeats earlier content."
+        },
+        "actionability": {
+          "score": 7,
+          "reason": "Redis Streams code example and scenario-based guidance are practical, but much of the advice is generic ('monitor subscriber health')."
+        }
+      }
+    },
+    {
+      "task_id": "explain_redis_pubsub",
+      "task_name": "Redis Pub/Sub 설명",
+      "task_category": "non-coding",
+      "task_prompt": "Explain how Redis Pub/Sub works, when to use it, and its limitations compared to a dedicated message broker like RabbitMQ or Kafka.",
+      "condition": "vanilla_harness",
+      "condition_name": "Col2: 바닐라 Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:11:20.801139",
+      "response": "## How Redis Pub/Sub Works\n\nRedis Pub/Sub uses channels as the communication medium:\n\n1. **Publishers** send messages to named channels using `PUBLISH channel message`\n2. **Subscribers** listen to channels using `SUBSCRIBE channel` (or `PSUBSCRIBE` with patterns)\n3. Messages are delivered immediately to all active subscribers on that channel\n4. No message persistence — if no subscriber exists at publish time, the message is lost\n\n```bash\n# Terminal 1: Subscribe\nredis-cli SUBSCRIBE news\n\n# Terminal 2: Publish  \nredis-cli PUBLISH news \"Breaking news!\"\n```\n\n## When to Use It\n\n- **Real-time notifications** (chat rooms, live updates, alerts)\n- **Event broadcasting** where delivery guarantees aren't critical\n- **Simple decoupling** between services in low-throughput scenarios\n- **Prototyping** or temporary messaging needs\n\n## Limitations vs RabbitMQ/Kafka\n\n| Aspect | Redis Pub/Sub | RabbitMQ/Kafka |\n|--------|--------------|----------------|\n| **Persistence** | None — messages lost if no subscriber | Message queues/topics persist |\n| **Delivery Guarantees** | At-most-once | At-least-once / Exactly-once options |\n| **Consumer Control** | Broadcast only — can't pause/replay | Acknowledgments, retries, offsets |\n| **Scalability** | Single-node bottleneck | Built-in clustering & partitioning |\n| **Routing** | Basic channel/pattern matching | Complex routing (headers, exchanges, etc.) |\n| **Backpressure** | None — producers block consumers | Queue buffering handles load spikes |\n| **Monitoring** | Limited visibility | Rich metrics, dead-letter queues |\n\n## Bottom Line\n\nUse Redis Pub/Sub for simple, fire-and-forget real-time events. Choose RabbitMQ or Kafka when you need reliability, ordering, replay capability, or high throughput.",
+      "response_length": 1749,
+      "elapsed": 6.0,
+      "input_tokens": 657,
+      "output_tokens": 464,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 8,
+          "reason": "Mostly correct but 'producers block consumers' under backpressure is misleading — slow subscribers get disconnected, not blocked; also RabbitMQ/Kafka conflated throughout as if identical."
+        },
+        "completeness": {
+          "score": 8,
+          "reason": "Covers mechanics, use cases, and limitations well with a useful comparison table; could mention Redis Streams as the natural upgrade path."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Dense and well-structured with no filler or repetition; every section earns its space."
+        },
+        "no_overexplaining": {
+          "score": 8,
+          "reason": "The bash example is borderline unnecessary for this audience but brief enough; otherwise stays on topic."
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "Bottom Line section restates what the table already makes obvious; the header hierarchy is slightly heavy for the content volume."
+        },
+        "actionability": {
+          "score": 8,
+          "reason": "The comparison table and use-case list give clear decision criteria; would be stronger with a mention of Redis Streams as alternative."
+        }
+      }
+    },
+    {
+      "task_id": "explain_redis_pubsub",
+      "task_name": "Redis Pub/Sub 설명",
+      "task_category": "non-coding",
+      "task_prompt": "Explain how Redis Pub/Sub works, when to use it, and its limitations compared to a dedicated message broker like RabbitMQ or Kafka.",
+      "condition": "distilled_harness",
+      "condition_name": "Col3: Distilled Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:12:09.555766",
+      "response": "### How Redis Pub/Sub Works\nRedis Pub/Sub is a messaging paradigm where clients subscribe to channels and receive messages published to those channels.\n1.  **Publish**: A client sends a message to a specific channel (`PUBLISH channel message`).\n2.  **Broadcast**: Redis immediately forwards the message to all clients currently subscribed to that channel.\n3.  **Receive**: Subscribed clients receive the message in real-time.\n4.  **Fire-and-Forget**: Once delivered to subscribers, the message is discarded. Redis does not store it.\n\n### When to Use It\n*   **Real-time Notifications**: Chat rooms, live sports scores, or stock tickers where immediate delivery is critical.\n*   **Event Broadcasting**: Notifying multiple services of a state change (e.g., \"User X logged in\") where loss of a single message is acceptable.\n*   **Simple Decoupling**: When you need a lightweight, in-memory mechanism to decouple producers and consumers without managing a separate infrastructure.\n\n### Limitations vs. RabbitMQ/Kafka\n\n| Feature | Redis Pub/Sub | RabbitMQ / Kafka |\n| :--- | :--- | :--- |\n| **Persistence** | **None**. If a subscriber is offline, the message is lost forever. | **Yes**. Messages are stored on disk/memory until acknowledged or retention policies expire. |\n| **Reliability** | Low. No delivery guarantees (at-most-once). | High. Supports at-least-once or exactly-once semantics with acknowledgments. |\n| **Backpressure** | **None**. If consumers are slow, messages are dropped or the producer blocks. | **Yes**. Queues buffer messages, allowing producers to continue while consumers catch up. |\n| **Routing** | Simple channel-based broadcast only. | Complex routing (exchanges, topics, headers, consumer groups, partitioning). |\n| **Scalability** | Limited by single-node memory (unless using Redis Cluster, which complicates Pub/Sub). | Designed for horizontal scaling across clusters with high throughput. |\n| **Consumer Groups** | No. Every subscriber gets every message. | Yes (Kafka). Messages are split among consumers in a group for parallel processing. |\n\n**Summary**: Use Redis Pub/Sub for **ephemeral, real-time broadcasting** where simplicity and speed outweigh reliability. Use RabbitMQ or Kafka for **critical business logic**, **asynchronous processing**, or scenarios requiring **message durability** and **backpressure handling**.",
+      "response_length": 2356,
+      "elapsed": 36.75,
+      "input_tokens": 659,
+      "output_tokens": 516,
+      "model": "vllm/Qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 8,
+          "reason": "Mostly correct, but the backpressure claim that messages are 'dropped' is misleading—Redis actually buffers in the output buffer and may disconnect slow clients, not silently drop messages."
+        },
+        "completeness": {
+          "score": 8,
+          "reason": "Covers mechanics, use cases, and limitations well with a solid comparison table; could mention Redis Streams as the modern alternative or touch on pattern subscriptions."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Dense and well-structured with no real repetition or filler within sections."
+        },
+        "no_overexplaining": {
+          "score": 8,
+          "reason": "Stays focused on what was asked; the summary at the end slightly restates what the table already showed but is brief enough."
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "The summary section rehashes the table's conclusions, and the triple-section structure with headers plus a table plus a summary adds some structural overhead."
+        },
+        "actionability": {
+          "score": 8,
+          "reason": "Concrete use cases, specific command syntax, and a clear decision framework make it practically useful for choosing between the technologies."
+        }
+      }
+    },
+    {
+      "task_id": "review_code",
+      "task_name": "코드 리뷰",
+      "task_category": "non-coding",
+      "task_prompt": "Review this Python code and identify all issues:\n\n```python\nimport json\nimport os\nimport sys\nimport re\nfrom typing import Optional, List, Dict, Any, Union\n\nclass UserManager:\n    _instance = None\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        self.users = {}\n        self.db = None\n\n    def get_user(self, user_id):\n        try:\n            if user_id in self.users:\n                return self.users[user_id]\n            user = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n            self.users[user_id] = user\n            return user\n        except Exception as e:\n            print(f\"Error: {e}\")\n            return None\n\n    def delete_user(self, user_id):\n        try:\n            self.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n            if user_id in self.users:\n                del self.users[user_id]\n            return True\n        except:\n            return False\n```",
+      "condition": "vanilla_raw",
+      "condition_name": "Col1: 바닐라 Qwen3.5-27B Raw",
+      "system_prompt_used": "(없음)",
+      "timestamp": "2026-04-06T12:12:43.219632",
+      "response": "# Code Review: UserManager Class\n\n## 🔴 Critical Security Issues\n\n### 1. **SQL Injection Vulnerability** ⚠️\n```python\n# VULNERABLE\nuser = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\nself.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n```\n**Problem:** Direct string interpolation allows attackers to inject malicious SQL.\n\n**Fix:** Use parameterized queries:\n```python\nuser = self.db.query(\"SELECT * FROM users WHERE id = ?\", (user_id,))\nself.db.query(\"DELETE FROM users WHERE id = ?\", (user_id,))\n```\n\n---\n\n## 🟠 Major Design Issues\n\n### 2. **Singleton Pattern Broken**\n```python\ndef __init__(self):\n    self.users = {}  # Resets on every instantiation!\n    self.db = None\n```\n**Problem:** `__init__` runs every time, resetting the cache and DB connection despite singleton behavior.\n\n**Fix:** Initialize only once:\n```python\ndef __init__(self):\n    if hasattr(self, '_initialized'):\n        return\n    self._initialized = True\n    self.users = {}\n    self.db = None\n```\n\n### 3. **No Thread Safety**\n- Singleton creation has race conditions\n- Shared `self.users` dict accessed without locks\n- Database operations not synchronized\n\n**Fix:** Add threading locks:\n```python\nimport threading\nself._lock = threading.Lock()\n```\n\n---\n\n## 🟡 Code Quality Issues\n\n### 4. **Poor Exception Handling**\n```python\nexcept:  # Bare except clause\n    return False\n```\n**Problems:**\n- Catches all exceptions including `SystemExit`, `KeyboardInterrupt`\n- Silently swallows errors\n- No logging for debugging\n\n**Fix:**\n```python\nexcept Exception as e:\n    logger.error(f\"Delete failed: {e}\")\n    raise  # Or handle specifically\n```\n\n### 5. **Unused Type Hints**\nImports `Optional`, `List`, `Dict`, etc., but none are used.\n\n**Fix:** Add proper type annotations:\n```python\ndef get_user(self, user_id: int) -> Optional[Dict[str, Any]]: ...\ndef delete_user(self, user_id: int) -> bool: ...\n```\n\n### 6. **Missing Documentation**\nNo docstrings explaining:\n- What the class does\n- Parameter types\n- Return values\n- Exceptions raised\n\n---\n\n## 🟢 Minor Issues\n\n### 7. **Database Not Initialized**\n```python\nself.db = None  # Never connected\n```\nShould initialize DB connection properly.\n\n### 8. **Console Logging Instead of Logger**\n```python\nprint(f\"Error: {e}\")\n```\nUse Python's `logging` module instead.\n\n### 9. **No Input Validation**\nNo checks on `user_id` type or format.\n\n### 10. **Resource Management**\nNo cleanup of database connections or context managers.\n\n---\n\n## ✅ Recommended Refactored Version\n\n```python\nimport json\nimport os\nimport sys\nimport re\nimport logging\nfrom typing import Optional, Dict, Any\nimport threading\n\nlogger = logging.getLogger(__name__)\n\nclass UserManager:\n    _instance = None\n    _lock = threading.Lock()\n\n    def __new__(cls):\n        if cls._instance is None:\n            with cls._lock:\n                if cls._instance is None:\n                    cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        if hasattr(self, '_initialized'):\n            return\n        self._initialized = True\n        self.users: Dict[int, Any] = {}\n        self.db = None\n        self._cache_lock = threading.Lock()\n\n    def connect_db(self, connection_string: str):\n        \"\"\"Initialize database connection.\"\"\"\n        # Implement actual DB connection logic\n        pass\n\n    def get_user(self, user_id: int) -> Optional[Dict[str, Any]]:\n        \"\"\"Retrieve user by ID with caching.\"\"\"\n        if not isinstance(user_id, int):\n            raise TypeError(\"user_id must be an integer\")\n        \n        with self._cache_lock:\n            if user_id in self.users:\n                return self.users[user_id]\n        \n        try:\n            if self.db is None:\n                raise RuntimeError(\"Database not connected\")\n            \n            user = self.db.query(\n                \"SELECT * FROM users WHERE id = ?\", \n                (user_id,)\n            )\n            \n            with self._cache_lock:\n                self.users[user_id] = user\n            \n            return user\n        except Exception as e:\n            logger.error(f\"Failed to get user {user_id}: {e}\")\n            raise\n\n    def delete_user(self, user_id: int) -> bool:\n        \"\"\"Delete user from database and cache.\"\"\"\n        if not isinstance(user_id, int):\n            raise TypeError(\"user_id must be an integer\")\n        \n        try:\n            if self.db is None:\n                raise RuntimeError(\"Database not connected\")\n            \n            self.db.query(\"DELETE FROM users WHERE id = ?\", (user_id,))\n            \n            with self._cache_lock:\n                self.users.pop(user_id, None)\n            \n            return True\n        except Exception as e:\n            logger.error(f\"Failed to delete user {user_id}: {e}\")\n            raise\n```\n\n---\n\n## Summary Table\n\n| Issue | Severity | Priority |\n|-------|----------|----------|\n| SQL Injection | 🔴 Critical | Immediate |\n| Singleton Reset | 🟠 High | High |\n| Thread Safety | 🟠 High | Medium |\n| Exception Handling | 🟡 Medium | Medium |\n| Missing Docs | 🟢 Low | Low |\n| Unused Imports | 🟢 Low | Low |\n\n**Bottom Line:** Fix SQL injection immediately, then address singleton and thread safety issues before deployment.",
+      "response_length": 5231,
+      "elapsed": 20.68,
+      "input_tokens": 259,
+      "output_tokens": 1796,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "All identified issues are correct; SQL injection, broken singleton __init__, bare except, unused imports, etc. are all valid findings."
+        },
+        "completeness": {
+          "score": 9,
+          "reason": "Covers all major issues: SQL injection, singleton reset, thread safety, bare except, unused imports, missing docs, uninitialized db, logging."
+        },
+        "conciseness": {
+          "score": 3,
+          "reason": "Massive response with full refactored version, summary table, emoji-laden headers, and redundant fix examples that balloon the length significantly."
+        },
+        "no_overexplaining": {
+          "score": 4,
+          "reason": "Thread safety and resource management are valid but speculative concerns not directly in the code; the full refactored class goes well beyond what was asked."
+        },
+        "response_bloat": {
+          "score": 2,
+          "reason": "Excessive structure: color-coded severity emojis, horizontal rules, summary table repeating earlier content, a full rewrite, and a 'Bottom Line' that restates everything."
+        },
+        "actionability": {
+          "score": 8,
+          "reason": "Fix suggestions are specific with concrete code examples; parameterized queries, singleton guard, and lock usage are all directly applicable."
+        }
+      }
+    },
+    {
+      "task_id": "review_code",
+      "task_name": "코드 리뷰",
+      "task_category": "non-coding",
+      "task_prompt": "Review this Python code and identify all issues:\n\n```python\nimport json\nimport os\nimport sys\nimport re\nfrom typing import Optional, List, Dict, Any, Union\n\nclass UserManager:\n    _instance = None\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        self.users = {}\n        self.db = None\n\n    def get_user(self, user_id):\n        try:\n            if user_id in self.users:\n                return self.users[user_id]\n            user = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n            self.users[user_id] = user\n            return user\n        except Exception as e:\n            print(f\"Error: {e}\")\n            return None\n\n    def delete_user(self, user_id):\n        try:\n            self.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n            if user_id in self.users:\n                del self.users[user_id]\n            return True\n        except:\n            return False\n```",
+      "condition": "vanilla_harness",
+      "condition_name": "Col2: 바닐라 Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:13:05.374958",
+      "response": "# Code Review Issues\n\n## Critical Security Issues\n\n1. **SQL Injection** - Lines 25 & 33\n   ```python\n   # VULNERABLE\n   self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n   self.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n   \n   # FIX: Use parameterized queries\n   self.db.query(\"SELECT * FROM users WHERE id = ?\", (user_id,))\n   ```\n\n2. **Bare Exception Handler** - Line 37\n   ```python\n   except:  # Catches everything including SystemExit, KeyboardInterrupt\n   ```\n   Should specify exception types: `except Exception as e:`\n\n## Logic/Design Issues\n\n3. **Singleton Reset Bug** - Lines 13-15\n   `__init__` runs on every instantiation, resetting `self.users = {}` even when returning cached `_instance`. Move initialization to `__new__` or add guard.\n\n4. **Uninitialized Database** - Line 16\n   `self.db = None` is never set up. Will fail on first query.\n\n5. **Inconsistent Error Handling**\n   - `get_user`: prints error, returns `None`\n   - `delete_user`: silent failure, returns `False`\n   Choose consistent approach (logging + raise or return structured result)\n\n6. **No Thread Safety**\n   Singleton creation isn't atomic; race condition possible during initialization.\n\n7. **No Input Validation**\n   `user_id` not validated before use in queries.",
+      "response_length": 1268,
+      "elapsed": 9.34,
+      "input_tokens": 878,
+      "output_tokens": 732,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "All identified issues are correct; SQL injection, bare except, singleton reset bug, uninitialized db, inconsistent error handling are all valid and accurately described."
+        },
+        "completeness": {
+          "score": 8,
+          "reason": "Covers the major issues well including singleton bug and thread safety; could mention unused imports (json, os, sys, re, typing) but core logic issues are well covered."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Each issue is stated concisely with minimal extra words; code examples are brief and relevant."
+        },
+        "no_overexplaining": {
+          "score": 9,
+          "reason": "No unnecessary background explanations or definitions; stays focused on the issues themselves."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "Headers are reasonable for organization but two levels of headers for 7 items is slightly heavy; otherwise lean."
+        },
+        "actionability": {
+          "score": 9,
+          "reason": "Provides concrete fixes with code examples for the most critical issue, and specific guidance for others."
+        }
+      }
+    },
+    {
+      "task_id": "review_code",
+      "task_name": "코드 리뷰",
+      "task_category": "non-coding",
+      "task_prompt": "Review this Python code and identify all issues:\n\n```python\nimport json\nimport os\nimport sys\nimport re\nfrom typing import Optional, List, Dict, Any, Union\n\nclass UserManager:\n    _instance = None\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        self.users = {}\n        self.db = None\n\n    def get_user(self, user_id):\n        try:\n            if user_id in self.users:\n                return self.users[user_id]\n            user = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n            self.users[user_id] = user\n            return user\n        except Exception as e:\n            print(f\"Error: {e}\")\n            return None\n\n    def delete_user(self, user_id):\n        try:\n            self.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n            if user_id in self.users:\n                del self.users[user_id]\n            return True\n        except:\n            return False\n```",
+      "condition": "distilled_harness",
+      "condition_name": "Col3: Distilled Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:13:38.143840",
+      "response": "Here are the issues in the code:\n\n1. **SQL Injection Vulnerability**: `get_user` and `delete_user` concatenate `user_id` directly into SQL queries. Use parameterized queries instead.\n2. **Singleton Initialization Bug**: `__init__` runs every time `UserManager()` is called, resetting `self.users` and `self.db` even if the instance already exists. Move initialization to `__new__` or guard it with a flag.\n3. **Bare `except` Clause**: `delete_user` catches all exceptions silently, hiding bugs. Catch specific exceptions and log them.\n4. **Missing Database Connection**: `self.db` is never initialized; `query` will fail.\n5. **No Input Validation**: `user_id` is not validated (type, format) before use.\n6. **Inconsistent Error Handling**: `get_user` prints errors; `delete_user` swallows them.\n7. **Thread Safety**: The singleton and cache (`self.users`) are not thread-safe.\n8. **No Type Hints**: Methods lack return type annotations.\n9. **Hardcoded SQL**: Queries are hardcoded; consider using an ORM or query builder.\n10. **No Caching Strategy**: Cache is never invalidated or expired.\n\nCritical fixes needed: SQL injection, singleton reset, and bare exception handling.",
+      "response_length": 1174,
+      "elapsed": 20.42,
+      "input_tokens": 880,
+      "output_tokens": 285,
+      "model": "vllm/Qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "All 10 issues are factually correct; no misleading claims."
+        },
+        "completeness": {
+          "score": 9,
+          "reason": "Covers all critical and moderate issues including SQL injection, singleton bug, bare except, missing db init, thread safety, and more."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Each point is one to two sentences; the closing summary line is slightly redundant but brief."
+        },
+        "no_overexplaining": {
+          "score": 8,
+          "reason": "Points 8-10 (type hints, ORM, caching strategy) are minor style preferences rather than real issues, bordering on unsolicited advice."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "Clean numbered list with a short summary; no disclaimers or restating the question, though 10 items pushes toward padding with lower-priority nitpicks."
+        },
+        "actionability": {
+          "score": 7,
+          "reason": "Most items name the problem and hint at fixes (parameterized queries, guard flag) but lack concrete code examples for the critical ones."
+        }
+      }
+    },
+    {
+      "task_id": "architecture_decision",
+      "task_name": "아키텍처 의사결정",
+      "task_category": "non-coding",
+      "task_prompt": "We have a monolithic Django app (50k LOC, 10 developers, ~500 RPS). The team wants to break out the payment processing module into a separate service. What are the key considerations, risks, and your recommendation?",
+      "condition": "vanilla_raw",
+      "condition_name": "Col1: 바닐라 Qwen3.5-27B Raw",
+      "system_prompt_used": "(없음)",
+      "timestamp": "2026-04-06T12:14:33.792935",
+      "response": "This is a classic architectural decision point. Based on the metrics you provided (**50k LOC**, **10 developers**, **~500 RPS**), my immediate assessment is that **you likely do not need a microservice yet.**\n\n50k lines of code is considered a *small-to-medium* monolith. 500 RPS is significant but easily handled by a horizontally scaled Django deployment (e.g., 3-5 instances behind a load balancer) without requiring distributed architecture.\n\nHowever, payment modules are special due to security, compliance, and reliability requirements. Here is a breakdown of the considerations, risks, and my recommendation.\n\n---\n\n### 1. Key Considerations\n\nIf you proceed, you must address these four pillars before writing code:\n\n#### A. Data Consistency & Transactions\n*   **The Problem:** In a monolith, a payment and an order update happen in one database transaction (`atomic`). In a distributed system, they are separate databases. You cannot rely on ACID transactions across services.\n*   **The Solution:** You will need to implement the **Saga Pattern** (Choreography or Orchestration). If the payment succeeds but the inventory reservation fails, how do you roll back?\n*   **Database Boundaries:** Will the new service have its own database? Sharing the same DB defeats the purpose of decoupling.\n\n#### B. Communication Patterns\n*   **Synchronous (REST/gRPC):** Good for user-facing actions (\"Did this charge go through?\"). Adds latency.\n*   **Asynchronous (Message Queue):** Better for payments. When a user clicks \"Pay,\" the main app sends a message to the Payment Service and returns \"Processing.\" The Payment Service handles the webhook/callback later.\n*   **Idempotency:** Network retries are inevitable. Your payment endpoints must handle duplicate requests gracefully to prevent double-charging.\n\n#### C. Security & Compliance (PCI-DSS)\n*   **Scope Reduction:** The primary reason to extract payments is usually to shrink your PCI-DSS audit scope.\n*   **Network Isolation:** The payment service should ideally sit in a different VPC or subnet with strict firewall rules.\n*   **Secret Management:** How are API keys for Stripe/PayPal managed? They shouldn't live in the same config store as the main app.\n\n#### D. Observability\n*   **Tracing:** A request now spans multiple services. You need distributed tracing (OpenTelemetry/Jaeger) to debug why a payment failed.\n*   **Logging:** Logs will be scattered. You need a centralized log aggregator (ELK, Datadog, etc.).\n\n---\n\n### 2. Risks\n\nMoving from a monolith to distributed services introduces **distributed system complexity**. For a team of 10, this is a heavy tax.\n\n| Risk | Impact | Mitigation |\n| :--- | :--- | :--- |\n| **Operational Overhead** | High. You now manage 2x deployments, 2x infra, 2x monitoring. | Use Kubernetes or Serverless to abstract infra management. |\n| **Debugging Difficulty** | High. Stack traces break at service boundaries. | Implement Correlation IDs and end-to-end tracing immediately. |\n| **Latency** | Medium. Network hops add 10-50ms per call. | Cache aggressively; use async patterns where possible. |\n| **Partial Failures** | Critical. Main app works, Payment service is down. Users can't buy. | Implement Circuit Breakers and graceful degradation (e.g., queue orders). |\n| **Team Fragmentation** | Medium. Conway's Law applies. If you don't have a dedicated Payments Team, coordination slows down. | Keep the team co-located or ensure strong API contracts. |\n| **Data Synchronization** | Critical. User balance in App A != Ledger in App B. | Treat the Payment Service DB as the source of truth for financial data. |\n\n---\n\n### 3. My Recommendation\n\n**Do not build a separate microservice yet.**\n\nAt 50k LOC and 10 developers, the **cost of distributed complexity outweighs the benefits.** You are trading a simple problem (database locking) for a complex one (eventual consistency).\n\n#### The Recommended Path: Modular Monolith\nInstead of breaking the app apart physically, break it apart logically.\n\n1.  **Domain-Driven Design (DDD):** Refactor the Django app into distinct apps/modules (`core`, `orders`, `payments`). Enforce strict boundaries so `payments` does not import `orders`.\n2.  **Shared Kernel:** Keep the database shared but isolate tables.\n3.  **Process Isolation:** Run the payment logic in a separate **Worker Process** (using Celery/Django Channels) rather than a separate HTTP service. This isolates the CPU/memory usage of payment processing from the web workers without adding network latency.\n4.  **Security Segmentation:** If PCI compliance is the driver, put the payment worker on a separate host/VPC that has no internet access except to the payment gateway. This satisfies auditors without the microservice headache.\n\n#### When SHOULD you split?\nOnly move to a true microservice if:\n1.  **Compliance Mandate:** Your auditor explicitly requires the payment logic to run on infrastructure completely isolated from the rest of the business logic (beyond just network segmentation).\n2.  **Tech Stack Change:** You need to rewrite the payment engine in Go/Rust for performance/security reasons while keeping the rest in Python.\n3.  **Team Growth:** You grow to 20+ developers and the \"Payments Team\" becomes a bottleneck for the \"Core Team.\"\n4.  **Scaling Mismatch:** The payment module requires 10x more resources than the rest of the app (unlikely at 500 RPS).\n\n#### If You Must Proceed (The \"Strangler Fig\" Approach)\nIf leadership insists on the split, follow this strategy to minimize risk:\n\n1.  **API First:** Define the API contract (gRPC or OpenAPI) for the Payment Service *before* building it.\n2.  **Dual Write / Proxy:** Create a proxy layer in the main Django app. Initially, the proxy calls the local function. Later, switch the proxy to call the external service URL.\n3.  **Event-Driven:** Make the main app fire-and-forget events to the payment service. Do not block the user experience waiting for the payment service response.\n4.  **Keep the DB Separate:** Do not share the database. Even if it feels easier, it creates a tight coupling that makes future separation impossible.\n\n### Summary\n**Stay Monolithic.** Refactor the internal code structure to isolate the payment logic. Use a separate worker queue for processing. Only introduce network boundaries when the organizational or compliance pain exceeds the technical pain of managing a distributed system. At 50k LOC, you are optimizing for scale you don't have yet.",
+      "response_length": 6453,
+      "elapsed": 34.38,
+      "input_tokens": 62,
+      "output_tokens": 2791,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "Technically sound throughout; Saga pattern, PCI-DSS scope reduction, idempotency, circuit breakers, and modular monolith advice are all correct and well-applied."
+        },
+        "completeness": {
+          "score": 10,
+          "reason": "Covers considerations (data consistency, communication, compliance, observability), risks with mitigations, a clear recommendation, alternative path, and when-to-split criteria—everything asked for and more."
+        },
+        "conciseness": {
+          "score": 5,
+          "reason": "Significant repetition: the 'stay monolithic' conclusion is stated three times (intro, recommendation section, summary); risks table partially duplicates the considerations section."
+        },
+        "no_overexplaining": {
+          "score": 5,
+          "reason": "Explains basics like ACID transactions, what a Saga pattern is, what OpenTelemetry does, and what Conway's Law means—concepts a team running 500 RPS Django at 50k LOC would already know."
+        },
+        "response_bloat": {
+          "score": 4,
+          "reason": "Excessive structural scaffolding: six heading levels, a full markdown table, numbered sub-lists inside lettered sub-sections, a dedicated summary section that restates the intro verbatim, and a 'if you must proceed' section adding yet another layer."
+        },
+        "actionability": {
+          "score": 9,
+          "reason": "Highly actionable: concrete steps for modular monolith refactor, specific tooling recommendations, clear decision criteria for when to actually split, and a practical strangler fig migration plan."
+        }
+      }
+    },
+    {
+      "task_id": "architecture_decision",
+      "task_name": "아키텍처 의사결정",
+      "task_category": "non-coding",
+      "task_prompt": "We have a monolithic Django app (50k LOC, 10 developers, ~500 RPS). The team wants to break out the payment processing module into a separate service. What are the key considerations, risks, and your recommendation?",
+      "condition": "vanilla_harness",
+      "condition_name": "Col2: 바닐라 Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:14:57.130717",
+      "response": "## Key Considerations\n\n| Area | What to Address |\n|------|-----------------|\n| **Data Consistency** | Payments require strong consistency; distributed transactions are complex |\n| **Communication** | Sync (HTTP/gRPC) for immediate responses vs async (queues) for background jobs |\n| **Transaction Boundaries** | How to handle rollbacks across service boundaries |\n| **Observability** | Distributed tracing, centralized logging, cross-service monitoring |\n| **Security** | PCI-DSS compliance, secrets management, network isolation |\n| **Team Structure** | Clear ownership boundaries, deployment independence |\n\n## Major Risks\n\n1. **Distributed transaction failures** — No native ACID across services; need sagas or eventual consistency patterns\n2. **Increased latency** — Network hops add 10-100ms per call\n3. **Debugging complexity** — Tracing issues across service boundaries is harder\n4. **Operational overhead** — Now managing 2+ deployments, databases, infra\n5. **Data duplication** — Payment state may need to be replicated for reporting\n\n## Recommendation\n\n**Start with a Strangler Fig pattern**, not a full rip-out:\n\n1. **Phase 1**: Extract payment *logic* into a library shared by both monolith and new service\n2. **Phase 2**: Run new service alongside monolith, route traffic gradually (feature flag)\n3. **Phase 3**: Migrate data incrementally, keep dual-write during transition\n4. **Phase 4**: Cut over completely once metrics are stable\n\n**Only proceed if:**\n- You have dedicated DevOps/SRE capacity\n- You can invest 2-3 months before seeing ROI\n- Payment flow has clear boundaries (not deeply entangled with other modules)\n\n**Alternative**: Keep it monolithic but isolate in a separate Django app with its own database schema. At 50k LOC and 10 devs, you likely don't *need* microservices yet unless there's specific scaling pressure on payments.\n\nWould you like me to outline a concrete migration plan or review your current payment module structure?",
+      "response_length": 1963,
+      "elapsed": 8.99,
+      "input_tokens": 681,
+      "output_tokens": 719,
+      "model": "alibaba/qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 8,
+          "reason": "Mostly correct; Strangler Fig phases are reasonable though Phase 1 shared library isn't strictly Strangler Fig, and 10-100ms latency claim is reasonable but hand-wavy"
+        },
+        "completeness": {
+          "score": 8,
+          "reason": "Covers considerations, risks, and recommendation well; could mention API versioning, testing strategy, and database migration specifics more"
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Well-structured and dense; the table format is efficient, minimal filler throughout"
+        },
+        "no_overexplaining": {
+          "score": 7,
+          "reason": "The closing question is unsolicited fluff; explaining what PCI-DSS and sagas are is borderline unnecessary for a team already running 500 RPS Django"
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "Three separate sections with headers plus a table is slightly over-structured; the 'Only proceed if' and 'Alternative' blocks add useful content but push length"
+        },
+        "actionability": {
+          "score": 8,
+          "reason": "Phased migration plan is concrete and practical; the alternative recommendation to stay monolithic shows good judgment; specific metrics like 2-3 months ROI timeline help"
+        }
+      }
+    },
+    {
+      "task_id": "architecture_decision",
+      "task_name": "아키텍처 의사결정",
+      "task_category": "non-coding",
+      "task_prompt": "We have a monolithic Django app (50k LOC, 10 developers, ~500 RPS). The team wants to break out the payment processing module into a separate service. What are the key considerations, risks, and your recommendation?",
+      "condition": "distilled_harness",
+      "condition_name": "Col3: Distilled Qwen3.5-27B + 하니스",
+      "system_prompt_used": "The user will primarily request you to perform software engineering tasks. These may include solving bugs, adding new functionality, refactoring code, explaining code, and more. When given an unclear or generic instruction, consider it in the context of these software engineering tasks.\n\nYou are highly capable and often allow users to complete ambitious tasks that would otherwise be too complex or take too long. You should defer to user judgement about whether a task is too large to attempt.\n\nIn general, do not propose changes to code you haven't read. If a user asks about or wants you to modify a file, read it first. Understand existing code before suggesting modifications.\n\nDo not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.\n\nDon't add features, refactor code, or make \"improvements\" beyond what was asked. A bug fix doesn't need surrounding code cleaned up. A simple feature doesn't need extra configurability. Don't add docstrings, comments, or type annotations to code you didn't change. Only add comments where the logic isn't self-evident.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use feature flags or backwards-compatibility shims when you can just change the code.\n\nDon't create helpers, utilities, or abstractions for one-time operations. Don't design for hypothetical future requirements. The right amount of complexity is what the task actually requires — no speculative abstractions, but no half-finished implementations either. Three similar lines of code is better than a premature abstraction.\n\nAvoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.\n\nBe careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.\n\n# Output efficiency\n\nIMPORTANT: Go straight to the point. Try the simplest approach first without going in circles. Do not overdo it. Be extra concise.\n\nKeep your text output brief and direct. Lead with the answer or action, not the reasoning. Skip filler words, preamble, and unnecessary transitions. Do not restate what the user said — just do it. When explaining, include only what is necessary for the user to understand.\n\nFocus text output on:\n- Decisions that need the user's input\n- High-level status updates at natural milestones\n- Errors or blockers that change the plan\n\nIf you can say it in one sentence, don't use three. Prefer short, direct sentences over long explanations. This does not apply to code or tool calls.",
+      "timestamp": "2026-04-06T12:16:04.955904",
+      "response": "**Recommendation:** **Do not extract the payment module yet.**\n\nAt 50k LOC and 10 developers, your monolith is likely still the most efficient architecture. The complexity of distributed systems (network latency, eventual consistency, distributed tracing, deployment orchestration) will likely outweigh the benefits unless you have a specific, unresolvable bottleneck.\n\n### Key Considerations\n\n1.  **Data Consistency & Transactions**\n    *   **Risk:** Moving from ACID (local DB transactions) to eventual consistency (distributed transactions).\n    *   **Challenge:** Handling payment failures, refunds, and inventory updates across service boundaries requires implementing the **Saga pattern** or **Outbox pattern**. This adds significant code complexity.\n\n2.  **Operational Overhead**\n    *   **Risk:** 10 developers managing 2 services doubles the deployment pipeline, monitoring, and debugging surface area.\n    *   **Challenge:** You need robust logging (correlation IDs), distributed tracing (OpenTelemetry/Jaeger), and alerting. Debugging a failed payment now involves checking two logs, two networks, and two databases.\n\n3.  **Latency & Performance**\n    *   **Risk:** Network calls add latency. 500 RPS is manageable, but if the payment service becomes a bottleneck, the entire checkout flow stalls.\n    *   **Challenge:** You must implement circuit breakers, retries with exponential backoff, and rate limiting to prevent cascading failures.\n\n4.  **Team Structure (Conway's Law)**\n    *   **Risk:** If the team isn't split into dedicated \"Payment\" and \"Core\" squads, you will have context-switching overhead without the benefit of independent scaling.\n    *   **Challenge:** Who owns the API contract? Who handles the database migration for the split?\n\n### Specific Risks\n\n*   **The \"Distributed Monolith\":** If you tightly couple the new service to the monolith (e.g., synchronous calls for every step), you lose the benefits of microservices while gaining all the downsides.\n*   **Data Duplication:** You will likely need to denormalize data (e.g., storing payment status in the main user table) to avoid constant lookups, leading to data integrity issues.\n*   **Testing Complexity:** End-to-end testing becomes exponentially harder. You need contract testing (Pact) and robust integration tests.\n\n### When to Proceed\n\nOnly extract the payment module if:\n1.  **Scaling Mismatch:** The payment module requires significantly different scaling (e.g., massive CPU for crypto, or strict compliance isolation) than the rest of the app.\n2.  **Team Split:** You are splitting the 10 developers into two distinct, autonomous teams.\n3.  **Tech Stack Change:** You need to rewrite the payment logic in a different language (e.g., Rust/Go) for security or performance reasons.\n\n### Alternative Strategy: Modular Monolith\n\nBefore breaking out a service, refactor the code **inside** the monolith:\n1.  **Strict Boundaries:** Enforce a clear package structure (e.g., `apps/payments/`) with no circular dependencies.\n2.  **Domain-Driven Design (DDD):** Define clear aggregates and boundaries.\n3.  **Shared Kernel:** If you eventually split, the code is already isolated, making the extraction a \"cut and paste\" operation rather than a complex refactor.\n\n**Verdict:** Focus on **modularizing** the code first. If the team grows to 20+ or the payment logic requires a different runtime, *then* extract.",
+      "response_length": 3396,
+      "elapsed": 54.2,
+      "input_tokens": 683,
+      "output_tokens": 759,
+      "model": "vllm/Qwen3.5-27b",
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "Technically sound advice on Saga/Outbox patterns, Conway's Law, circuit breakers, and modular monolith strategy; no factual errors."
+        },
+        "completeness": {
+          "score": 9,
+          "reason": "Covers data consistency, operational overhead, latency, team structure, specific risks, when to proceed, and alternative strategy—hits all key angles."
+        },
+        "conciseness": {
+          "score": 6,
+          "reason": "Some redundancy between Key Considerations and Specific Risks sections; the risk/challenge sub-bullets repeat similar points in slightly different framing."
+        },
+        "no_overexplaining": {
+          "score": 6,
+          "reason": "Explains basic concepts like ACID, circuit breakers, and correlation IDs that a team running 500 RPS on a 50k LOC Django app would already know."
+        },
+        "response_bloat": {
+          "score": 5,
+          "reason": "Excessive structural scaffolding with nested headers, bold labels, repeated risk/challenge pairs, and a verdict that restates the intro recommendation."
+        },
+        "actionability": {
+          "score": 8,
+          "reason": "Concrete patterns named (Saga, Outbox, Pact), specific thresholds given (20+ devs), and a clear modular monolith step-by-step alternative."
+        }
+      }
+    }
+  ]
+}

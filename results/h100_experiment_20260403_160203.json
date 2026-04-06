@@ -1,0 +1,234 @@
+[
+  {
+    "task_id": "task_queue",
+    "task_name": "Thread-Safe Task Queue",
+    "condition": "raw_27b",
+    "condition_name": "Col1: Qwen3.5-27B Raw",
+    "timestamp": "2026-04-03T15:51:47.939614",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=120)"
+  },
+  {
+    "task_id": "task_queue",
+    "task_name": "Thread-Safe Task Queue",
+    "condition": "harness_27b",
+    "condition_name": "Col2: Qwen3.5-27B + Claude Code 하니스",
+    "timestamp": "2026-04-03T15:53:48.046031",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=120)"
+  },
+  {
+    "task_id": "task_queue",
+    "task_name": "Thread-Safe Task Queue",
+    "condition": "claude_code",
+    "condition_name": "Col3: Claude Code CLI (실제)",
+    "timestamp": "2026-04-03T15:54:39.180507",
+    "response": "It seems file write permission hasn't been granted yet. Please approve the write operation and I'll proceed. Here's a summary of the design before you do:\n\n---\n\n**Design overview**\n\n| Class | Responsibility |\n|---|---|\n| `Task` | Dataclass holding the callable, args, state, attempts, result/error. Implements `__lt__` so `PriorityQueue` (min-heap) naturally orders by descending priority. |\n| `TaskQueue` | Wraps `queue.PriorityQueue`. Owns a `dict[task_id → Task]` protected by a `threading.Lock` for safe concurrent reads/writes. Exposes `submit()` and `get_status()`. |\n| `Worker` | Daemon `threading.Thread`. Pulls tasks, runs them, catches exceptions, requeues on failure (up to `max_attempts=3`), then marks final state. |\n\n**Key thread-safety decisions**\n- `queue.PriorityQueue` is internally thread-safe for put/get.\n- The `_tasks` registry is guarded by a dedicated `Lock` — state mutations (`_mark_state`) and status reads both acquire it.\n- `attempts` is only ever mutated by the single worker thread currently holding the task, so no extra lock is needed there.\n- `queue.task_done()` is called after every dequeue (including requeues), allowing `queue.join()` to block until all work settles.\n\nOnce you approve the write, the file will be ready to run with `python task_queue.py`.",
+    "response_length": 1293,
+    "elapsed": 51.13,
+    "input_tokens": 5,
+    "output_tokens": 3598,
+    "model": "claude",
+    "cost_usd": 0,
+    "evaluation": {
+      "correctness": {
+        "score": 1,
+        "reason": "No code was actually written or shown; the response is entirely a description of code that was never produced."
+      },
+      "efficiency": {
+        "score": 1,
+        "reason": "Cannot evaluate efficiency as no implementation exists."
+      },
+      "conciseness": {
+        "score": 1,
+        "reason": "No code to evaluate; only a design summary table was provided instead of actual implementation."
+      },
+      "no_overengineering": {
+        "score": 1,
+        "reason": "Cannot evaluate; no code was written, and the design description mentions type hints and daemon threads not explicitly requested."
+      },
+      "response_bloat": {
+        "score": 2,
+        "reason": "Response is entirely prose/tables explaining a design rather than delivering the requested code, with a permission excuse deflecting the actual task."
+      },
+      "instruction_following": {
+        "score": 1,
+        "reason": "Failed to implement any of the required classes (TaskQueue, Task, Worker), features, or usage example — the core task was not completed."
+      }
+    }
+  },
+  {
+    "task_id": "rest_api",
+    "task_name": "Flask REST API",
+    "condition": "raw_27b",
+    "condition_name": "Col1: Qwen3.5-27B Raw",
+    "timestamp": "2026-04-03T15:56:47.619861",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=120)"
+  },
+  {
+    "task_id": "rest_api",
+    "task_name": "Flask REST API",
+    "condition": "harness_27b",
+    "condition_name": "Col2: Qwen3.5-27B + Claude Code 하니스",
+    "timestamp": "2026-04-03T15:57:46.093571",
+    "response": "```python\nfrom flask import Flask, request, jsonify\n\napp = Flask(__name__)\n\n# In-memory storage\ntodos = {}\nnext_id = 1\n\n@app.route('/todos', methods=['GET'])\ndef get_todos():\n    return jsonify(list(todos.values())), 200\n\n@app.route('/todos', methods=['POST'])\ndef create_todo():\n    global next_id\n    data = request.get_json()\n    \n    if not data or 'title' not in data:\n        return jsonify({'error': 'Title is required'}), 400\n    \n    todo = {\n        'id': next_id,\n        'title': data['title'],\n        'description': data.get('description', ''),\n        'due_date': data.get('due_date'),\n        'completed': False\n    }\n    \n    todos[next_id] = todo\n    next_id += 1\n    \n    return jsonify(todo), 201\n\n@app.route('/todos/<int:todo_id>', methods=['GET'])\ndef get_todo(todo_id):\n    if todo_id not in todos:\n        return jsonify({'error': 'Todo not found'}), 404\n    return jsonify(todos[todo_id]), 200\n\n@app.route('/todos/<int:todo_id>', methods=['PUT'])\ndef update_todo(todo_id):\n    if todo_id not in todos:\n        return jsonify({'error': 'Todo not found'}), 404\n    \n    data = request.get_json()\n    if not data:\n        return jsonify({'error': 'No data provided'}), 400\n    \n    todo = todos[todo_id]\n    if 'title' in data:\n        todo['title'] = data['title']\n    if 'description' in data:\n        todo['description'] = data['description']\n    if 'due_date' in data:\n        todo['due_date'] = data['due_date']\n    if 'completed' in data:\n        todo['completed'] = data['completed']\n    \n    return jsonify(todo), 200\n\n@app.route('/todos/<int:todo_id>', methods=['DELETE'])\ndef delete_todo(todo_id):\n    if todo_id not in todos:\n        return jsonify({'error': 'Todo not found'}), 404\n    \n    del todos[todo_id]\n    return '', 204\n\nif __name__ == '__main__':\n    app.run(debug=True)\n```",
+    "response_length": 1818,
+    "elapsed": 58.47,
+    "input_tokens": 702,
+    "output_tokens": 529,
+    "model": "Qwen3.5-27b",
+    "cost_usd": 0,
+    "evaluation": {
+      "correctness": {
+        "score": 9,
+        "reason": "All endpoints work correctly with proper 404/400/201/204 status codes; minor: empty string default for description differs from None for due_date inconsistently"
+      },
+      "efficiency": {
+        "score": 10,
+        "reason": "O(1) dict lookups for all operations; optimal for in-memory storage"
+      },
+      "conciseness": {
+        "score": 8,
+        "reason": "Slightly verbose with blank lines between route handlers but otherwise clean; `global next_id` is necessary"
+      },
+      "no_overengineering": {
+        "score": 9,
+        "reason": "Includes `completed` field not explicitly requested but reasonable for a todo app; no unnecessary patterns or abstractions"
+      },
+      "response_bloat": {
+        "score": 10,
+        "reason": "Code only, no prose, explanations, or commentary"
+      },
+      "instruction_following": {
+        "score": 10,
+        "reason": "All 5 endpoints implemented with correct methods, in-memory dict storage, required/optional fields, and single file"
+      }
+    }
+  },
+  {
+    "task_id": "rest_api",
+    "task_name": "Flask REST API",
+    "condition": "claude_code",
+    "condition_name": "Col3: Claude Code CLI (실제)",
+    "timestamp": "2026-04-03T15:58:25.465983",
+    "response": "It looks like write permissions aren't granted for that directory. Please approve the file write when prompted, or let me know if you'd like me to use a different path.\n\nIn the meantime, here's the complete `app.py`:\n\n```python\nfrom flask import Flask, jsonify, request\nfrom datetime import datetime\n\napp = Flask(__name__)\n\ntodos = {}\nnext_id = 1\n\n\ndef todo_not_found(todo_id):\n    return jsonify({\"error\": f\"Todo {todo_id} not found\"}), 404\n\n\n@app.route(\"/todos\", methods=[\"GET\"])\ndef list_todos():\n    return jsonify(list(todos.values())), 200\n\n\n@app.route(\"/todos\", methods=[\"POST\"])\ndef create_todo():\n    global next_id\n    data = request.get_json(silent=True) or {}\n\n    if not data.get(\"title\"):\n        return jsonify({\"error\": \"title is required\"}), 400\n\n    todo = {\n        \"id\": next_id,\n        \"title\": data[\"title\"],\n        \"description\": data.get(\"description\"),\n        \"due_date\": data.get(\"due_date\"),\n        \"completed\": False,\n        \"created_at\": datetime.utcnow().isoformat(),\n    }\n    todos[next_id] = todo\n    next_id += 1\n    return jsonify(todo), 201\n\n\n@app.route(\"/todos/<int:todo_id>\", methods=[\"GET\"])\ndef get_todo(todo_id):\n    todo = todos.get(todo_id)\n    if todo is None:\n        return todo_not_found(todo_id)\n    return jsonify(todo), 200\n\n\n@app.route(\"/todos/<int:todo_id>\", methods=[\"PUT\"])\ndef update_todo(todo_id):\n    todo = todos.get(todo_id)\n    if todo is None:\n        return todo_not_found(todo_id)\n\n    data = request.get_json(silent=True) or {}\n    for field in (\"title\", \"description\", \"due_date\", \"completed\"):\n        if field in data:\n            todo[field] = data[field]\n\n    if not todo.get(\"title\"):\n        return jsonify({\"error\": \"title cannot be empty\"}), 400\n\n    return jsonify(todo), 200\n\n\n@app.route(\"/todos/<int:todo_id>\", methods=[\"DELETE\"])\ndef delete_todo(todo_id):\n    if todo_id not in todos:\n        return todo_not_found(todo_id)\n    del todos[todo_id]\n    return \"\", 204\n\n\nif __name__ == \"__main__\":\n    app.run(debug=True)\n```\n\n**Run it:**\n```bash\npip install flask\npython app.py\n```\n\n**Status codes:**\n| Endpoint | Success | Error |\n|---|---|---|\n| `GET /todos` | 200 | — |\n| `POST /todos` | 201 | 400 (missing title) |\n| `GET /todos/<id>` | 200 | 404 |\n| `PUT /todos/<id>` | 200 | 404, 400 |\n| `DELETE /todos/<id>` | 204 | 404 |\n\n**Quick test:**\n```bash\ncurl -s -X POST localhost:5000/todos -H \"Content-Type: application/json\" \\\n  -d '{\"title\":\"Buy milk\",\"due_date\":\"2026-04-05\"}' | python -m json.tool\n\ncurl -s localhost:5000/todos | python -m json.tool\n```",
+    "response_length": 2538,
+    "elapsed": 30.82,
+    "input_tokens": 5,
+    "output_tokens": 2240,
+    "model": "claude",
+    "cost_usd": 0,
+    "evaluation": {
+      "correctness": {
+        "score": 9,
+        "reason": "All endpoints work correctly with proper status codes, validation, and 404 handling; minor issue with global next_id not being thread-safe but acceptable for in-memory demo."
+      },
+      "efficiency": {
+        "score": 10,
+        "reason": "O(1) dict lookups for all operations; no unnecessary iterations or redundant data structures."
+      },
+      "conciseness": {
+        "score": 8,
+        "reason": "Code is clean and minimal; helper function todo_not_found is a nice touch but the global next_id pattern is slightly verbose compared to len(todos)+1 alternatives."
+      },
+      "no_overengineering": {
+        "score": 9,
+        "reason": "No type hints, no docstrings, no classes—just straightforward Flask routes with appropriate validation; 'completed' field addition is a reasonable implicit requirement."
+      },
+      "response_bloat": {
+        "score": 4,
+        "reason": "Unnecessary permission error message at top, status code table, and curl test examples add significant unrequested prose beyond just the code."
+      },
+      "instruction_following": {
+        "score": 10,
+        "reason": "All 5 endpoints implemented, in-memory dict storage used, proper HTTP status codes returned, JSON responses, single file—fully compliant."
+      }
+    }
+  },
+  {
+    "task_id": "cache_system",
+    "task_name": "LRU Cache with TTL",
+    "condition": "raw_27b",
+    "condition_name": "Col1: Qwen3.5-27B Raw",
+    "timestamp": "2026-04-03T16:00:34.024653",
+    "error": "HTTPConnectionPool(host='118.223.251.22', port=10051): Read timed out. (read timeout=120)"
+  },
+  {
+    "task_id": "cache_system",
+    "task_name": "LRU Cache with TTL",
+    "condition": "harness_27b",
+    "condition_name": "Col2: Qwen3.5-27B + Claude Code 하니스",
+    "timestamp": "2026-04-03T16:01:23.120389",
+    "response": "```python\nimport threading\nimport time\nfrom collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache = OrderedDict()\n        self.lock = threading.RLock()\n\n    def get(self, key) -> any:\n        with self.lock:\n            if key not in self.cache:\n                return None\n            \n            value, expiry = self.cache[key]\n            if time.time() > expiry:\n                del self.cache[key]\n                return None\n            \n            # Move to end (most recently used)\n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds: int = 60) -> None:\n        with self.lock:\n            expiry = time.time() + ttl_seconds\n            \n            if key in self.cache:\n                self.cache.move_to_end(key)\n            \n            self.cache[key] = (value, expiry)\n            \n            # Evict oldest if over capacity\n            if len(self.cache) > self.capacity:\n                self.cache.popitem(last=False)\n\n    def _cleanup_expired(self) -> None:\n        \"\"\"Helper to remove all expired entries (optional maintenance).\"\"\"\n        with self.lock:\n            now = time.time()\n            expired_keys = [k for k, (_, exp) in self.cache.items() if now > exp]\n            for k in expired_keys:\n                del self.cache[k]\n\n\n# Usage example\nif __name__ == \"__main__\":\n    cache = LRUCache(capacity=2)\n    \n    cache.put(\"a\", 1, ttl_seconds=5)\n    cache.put(\"b\", 2, ttl_seconds=5)\n    \n    print(cache.get(\"a\"))  # 1\n    print(cache.get(\"b\"))  # 2\n    \n    cache.put(\"c\", 3)  # Evicts \"a\" (LRU)\n    print(cache.get(\"a\"))  # None (evicted)\n    print(cache.get(\"c\"))  # 3\n    \n    # Wait for TTL to expire\n    time.sleep(6)\n    print(cache.get(\"b\"))  # None (expired)\n```",
+    "response_length": 1844,
+    "elapsed": 49.1,
+    "input_tokens": 681,
+    "output_tokens": 473,
+    "model": "Qwen3.5-27b",
+    "cost_usd": 0,
+    "evaluation": {
+      "correctness": {
+        "score": 9,
+        "reason": "Logic is correct: TTL check, LRU ordering, eviction all work properly; minor issue is put() doesn't update value when key exists before move_to_end but assignment after fixes it."
+      },
+      "efficiency": {
+        "score": 9,
+        "reason": "OrderedDict gives O(1) get/put/move_to_end; RLock is appropriate for thread safety; no unnecessary iteration except optional cleanup."
+      },
+      "conciseness": {
+        "score": 7,
+        "reason": "Verbose variable names like 'expired_keys' and 'expiry' are fine, but _cleanup_expired method was not asked for and adds lines; type hints add minor bloat."
+      },
+      "no_overengineering": {
+        "score": 6,
+        "reason": "Type hints not requested, docstring on _cleanup_expired not requested, and _cleanup_expired itself is an unrequested extra method flagged as 'optional maintenance'."
+      },
+      "response_bloat": {
+        "score": 9,
+        "reason": "Response is almost entirely code with a clean usage example; no verbose prose or unnecessary explanation."
+      },
+      "instruction_following": {
+        "score": 10,
+        "reason": "All requirements met: get/put with TTL default 60s, LRU eviction at capacity, thread-safe with lock, single LRUCache class, usage example included."
+      }
+    }
+  },
+  {
+    "task_id": "cache_system",
+    "task_name": "LRU Cache with TTL",
+    "condition": "claude_code",
+    "condition_name": "Col3: Claude Code CLI (실제)",
+    "timestamp": "2026-04-03T16:01:56.839887",
+    "response": "Here's the implementation — I'll present it directly since writes are blocked:\n\n```python\nimport threading\nimport time\nfrom collections import OrderedDict\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self._cache: OrderedDict[str, tuple] = OrderedDict()  # key -> (value, expires_at)\n        self._lock = threading.Lock()\n\n    def get(self, key):\n        with self._lock:\n            if key not in self._cache:\n                return None\n            value, expires_at = self._cache[key]\n            if time.monotonic() > expires_at:\n                del self._cache[key]\n                return None\n            self._cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds: float = 60):\n        with self._lock:\n            if key in self._cache:\n                self._cache.move_to_end(key)\n            elif len(self._cache) >= self.capacity:\n                self._cache.popitem(last=False)  # evict least recently used\n            self._cache[key] = (value, time.monotonic() + ttl_seconds)\n\n\nif __name__ == \"__main__\":\n    cache = LRUCache(capacity=3)\n\n    cache.put(\"a\", 1, ttl_seconds=5)\n    cache.put(\"b\", 2, ttl_seconds=0.1)\n    cache.put(\"c\", 3, ttl_seconds=5)\n\n    print(cache.get(\"a\"))   # 1\n    print(cache.get(\"b\"))   # 2\n\n    # LRU eviction: \"c\" is least recently used (a and b were accessed)\n    cache.put(\"d\", 4, ttl_seconds=5)\n    print(cache.get(\"c\"))   # None — evicted\n\n    time.sleep(0.15)\n    print(cache.get(\"b\"))   # None — TTL expired\n    print(cache.get(\"d\"))   # 4\n```\n\n**Key design decisions:**\n\n- **`OrderedDict`** tracks insertion/access order natively — `move_to_end` is O(1), making both `get` and `put` O(1).\n- **`time.monotonic()`** instead of `time.time()` — immune to system clock adjustments.\n- **Lazy expiration** — TTL is checked on `get` rather than via a background sweep. Expired entries stay in the dict until accessed, which keeps the implementation simple and avoids a background thread. The trade-off: expired entries still count against capacity until evicted or accessed.\n- **Single `threading.Lock`** covering both read and write — correct and simple. If you need higher read concurrency, `threading.RWLock` (via `rwlock` package) would allow concurrent reads.",
+    "response_length": 2294,
+    "elapsed": 24.72,
+    "input_tokens": 5,
+    "output_tokens": 1860,
+    "model": "claude",
+    "cost_usd": 0,
+    "evaluation": {
+      "correctness": {
+        "score": 9,
+        "reason": "Logic is correct; minor issue: put() updates value but doesn't update expiry when key already exists (move_to_end but keeps old TTL)."
+      },
+      "efficiency": {
+        "score": 10,
+        "reason": "O(1) get/put using OrderedDict with move_to_end; monotonic clock is correct choice."
+      },
+      "conciseness": {
+        "score": 8,
+        "reason": "Code itself is clean and minimal; inline comment on popitem is slightly redundant but acceptable."
+      },
+      "no_overengineering": {
+        "score": 6,
+        "reason": "Type hints were not asked for (used on capacity, ttl_seconds, _cache); otherwise no unnecessary abstractions."
+      },
+      "response_bloat": {
+        "score": 5,
+        "reason": "'Key design decisions' section with four bullet explanations was not requested and adds significant unrequested prose."
+      },
+      "instruction_following": {
+        "score": 10,
+        "reason": "All required features implemented: get, put with default TTL, capacity with LRU eviction, thread-safety, single class, usage example."
+      }
+    }
+  }
+]

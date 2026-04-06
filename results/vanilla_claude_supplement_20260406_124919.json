@@ -1,0 +1,266 @@
+{
+  "meta": {
+    "experiment": "vanilla_claude_supplement",
+    "timestamp": "2026-04-06T12:49:19.333840"
+  },
+  "results": [
+    {
+      "task_id": "coding_lru_cache",
+      "task_name": "LRU Cache with TTL",
+      "task_category": "coding",
+      "task_prompt": "Write a Python LRU cache with TTL (time-to-live) expiration:\n- get(key) - returns value or None if expired/missing\n- put(key, value, ttl_seconds=60) - stores with expiration\n- Maximum capacity with LRU eviction when full\n- Thread-safe\n\nImplement as a single class LRUCache. Include a brief usage example.",
+      "condition": "claude_opus",
+      "condition_name": "Col4: Claude Opus 4.6 CLI",
+      "system_prompt_used": "(claude cli built-in harness)",
+      "timestamp": "2026-04-06T12:46:36.755532",
+      "response": "Here's the implementation:\n\n```python\nimport threading\nimport time\nfrom collections import OrderedDict\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self._capacity = capacity\n        self._cache: OrderedDict[str, tuple[object, float]] = OrderedDict()\n        self._lock = threading.Lock()\n\n    def get(self, key: str):\n        with self._lock:\n            if key not in self._cache:\n                return None\n            value, expires_at = self._cache[key]\n            if time.monotonic() > expires_at:\n                del self._cache[key]\n                return None\n            self._cache.move_to_end(key)\n            return value\n\n    def put(self, key: str, value: object, ttl_seconds: float = 60):\n        with self._lock:\n            if key in self._cache:\n                del self._cache[key]\n            elif len(self._cache) >= self._capacity:\n                self._cache.popitem(last=False)\n            self._cache[key] = (value, time.monotonic() + ttl_seconds)\n```\n\n**Usage:**\n\n```python\ncache = LRUCache(capacity=3)\n\ncache.put(\"a\", 1, ttl_seconds=2)\ncache.put(\"b\", 2)\ncache.put(\"c\", 3)\nprint(cache.get(\"a\"))  # 1\n\ncache.put(\"d\", 4)      # evicts \"b\" (LRU)\nprint(cache.get(\"b\"))  # None\n\ntime.sleep(2.1)\nprint(cache.get(\"a\"))  # None (expired)\n```\n\n**Key design points:**\n\n- **`OrderedDict`** tracks insertion/access order — `move_to_end` on access, `popitem(last=False)` evicts the LRU entry.\n- **`time.monotonic()`** for TTL instead of `time.time()` — immune to system clock changes.\n- **`threading.Lock`** wraps every public method for thread safety.\n- Each entry stores `(value, expires_at)` — expiration is checked lazily on `get`.\n\nWould you like me to write this to a file? It looks like file write permissions need to be granted first.",
+      "response_length": 1777,
+      "elapsed": 27.3,
+      "input_tokens": 5,
+      "output_tokens": 1608,
+      "model": "claude-opus-4-6",
+      "cost_usd": 0,
+      "evaluation": {
+        "correctness": {
+          "score": 9,
+          "reason": "Correct LRU eviction, TTL expiration, thread safety; minor: expired entries not evicted during put, but lazy expiration on get is acceptable."
+        },
+        "efficiency": {
+          "score": 9,
+          "reason": "OrderedDict gives O(1) for all operations; monotonic clock is correct choice; no unnecessary overhead."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Very compact implementation with no unnecessary code, imports are all used, minimal blank lines."
+        },
+        "no_overengineering": {
+          "score": 7,
+          "reason": "Type hints on __init__ params and _cache are not asked for; the trailing question about file write is unnecessary filler."
+        },
+        "response_bloat": {
+          "score": 6,
+          "reason": "The 'Key design points' section with 4 bullet explanations and the trailing question about file write add significant unnecessary prose beyond the requested 'brief usage example'."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "All requirements met: get/put with TTL, max capacity with LRU eviction, thread-safe, single class, usage example included."
+        }
+      }
+    },
+    {
+      "task_id": "coding_group_by",
+      "task_name": "group_by 함수",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function group_by(items, key_fn) that groups a list of items by the result of key_fn, returning a dict of lists. Do not use itertools.groupby.",
+      "condition": "claude_opus",
+      "condition_name": "Col4: Claude Opus 4.6 CLI",
+      "system_prompt_used": "(claude cli built-in harness)",
+      "timestamp": "2026-04-06T12:46:54.070369",
+      "response": "\n\n```python\ndef group_by(items, key_fn):\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        result.setdefault(key, []).append(item)\n    return result\n```",
+      "response_length": 176,
+      "elapsed": 6.15,
+      "input_tokens": 3,
+      "output_tokens": 62,
+      "model": "claude-opus-4-6",
+      "cost_usd": 0,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Correctly groups items by key_fn result, returns dict of lists, handles all cases properly."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "Single pass O(n) with setdefault, optimal approach."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Minimal code, no unnecessary lines or variables, uses setdefault elegantly."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, no docstring, no error handling, no extras—just the function."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Pure code, zero prose or explanation."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Implements group_by exactly as specified, no itertools.groupby used."
+        }
+      }
+    },
+    {
+      "task_id": "coding_merge_intervals",
+      "task_name": "Merge Intervals",
+      "task_category": "coding",
+      "task_prompt": "Write a Python function merge_intervals(intervals) that takes a list of [start, end] intervals and returns a new list with all overlapping intervals merged. Example: [[1,3],[2,6],[8,10],[15,18]] -> [[1,6],[8,10],[15,18]]",
+      "condition": "claude_opus",
+      "condition_name": "Col4: Claude Opus 4.6 CLI",
+      "system_prompt_used": "(claude cli built-in harness)",
+      "timestamp": "2026-04-06T12:47:16.767783",
+      "response": "\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    intervals.sort()\n    merged = [intervals[0]]\n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    return merged\n```",
+      "response_length": 332,
+      "elapsed": 6.37,
+      "input_tokens": 3,
+      "output_tokens": 101,
+      "model": "claude-opus-4-6",
+      "cost_usd": 0,
+      "evaluation": {
+        "correctness": {
+          "score": 10,
+          "reason": "Correctly sorts, merges overlapping intervals, and handles edge cases like empty input."
+        },
+        "efficiency": {
+          "score": 10,
+          "reason": "O(n log n) sort-based approach is optimal for this problem."
+        },
+        "conciseness": {
+          "score": 10,
+          "reason": "Minimal code with no unnecessary lines, imports, or variables."
+        },
+        "no_overengineering": {
+          "score": 10,
+          "reason": "No type hints, docstrings, or unnecessary abstractions—just the function."
+        },
+        "response_bloat": {
+          "score": 10,
+          "reason": "Pure code with zero explanatory prose or disclaimers."
+        },
+        "instruction_following": {
+          "score": 10,
+          "reason": "Implements exactly what was asked with correct example behavior."
+        }
+      }
+    },
+    {
+      "task_id": "explain_redis_pubsub",
+      "task_name": "Redis Pub/Sub 설명",
+      "task_category": "non-coding",
+      "task_prompt": "Explain how Redis Pub/Sub works, when to use it, and its limitations compared to a dedicated message broker like RabbitMQ or Kafka.",
+      "condition": "claude_opus",
+      "condition_name": "Col4: Claude Opus 4.6 CLI",
+      "system_prompt_used": "(claude cli built-in harness)",
+      "timestamp": "2026-04-06T12:47:48.318250",
+      "response": "## Redis Pub/Sub\n\n### How it works\n\nRedis Pub/Sub is a fire-and-forget messaging pattern built into Redis.\n\n- **Publishers** send messages to named **channels** via `PUBLISH channel message`.\n- **Subscribers** listen on channels via `SUBSCRIBE channel` (or pattern-match with `PSUBSCRIBE`).\n- Redis routes each published message to all currently connected subscribers of that channel in real time.\n- There is no queue — messages are pushed to subscribers immediately over their persistent connection.\n\n```\nPublisher ──PUBLISH \"orders\" \"{...}\"──▶ Redis ──▶ Subscriber A (SUBSCRIBE \"orders\")\n                                            └──▶ Subscriber B (SUBSCRIBE \"orders\")\n```\n\n### When to use it\n\n- **Real-time notifications** — chat, live dashboards, cache invalidation signals across app nodes.\n- **Lightweight event fan-out** — when every listener needs the same message and losing the occasional message is acceptable.\n- **Internal coordination** — signaling between microservices that are already using Redis (e.g., \"config changed, reload\").\n- **Low-latency, low-complexity needs** — no extra infrastructure if you already run Redis.\n\n### Limitations vs. RabbitMQ / Kafka\n\n| Concern | Redis Pub/Sub | RabbitMQ | Kafka |\n|---|---|---|---|\n| **Persistence** | None. Messages are lost if no subscriber is connected. | Messages persist in queues until consumed/TTL. | Messages persist on disk with configurable retention. |\n| **Delivery guarantee** | At-most-once. | At-least-once (with acks). | At-least-once / exactly-once semantics. |\n| **Consumer groups / load balancing** | Not supported (all subscribers get every message). | Built-in competing consumers on a queue. | Native consumer groups with offset tracking. |\n| **Backpressure / slow consumers** | Slow subscriber → output buffer grows → Redis disconnects it. | Queue absorbs bursts; consumers pull at their own pace. | Consumers pull at their own pace; log is retained. |\n| **Message replay** | Impossible. No history. | Only with re-queuing or dead-letter exchanges. | First-class — seek to any offset and replay. |\n| **Ordering** | Per-channel FIFO. | Per-queue FIFO (single consumer). | Per-partition strict ordering. |\n| **Scalability** | Single Redis node handles Pub/Sub (Cluster shards by channel but no replication of Pub/Sub). | Scales via clustering/federation. | Designed for massive throughput via partitioned log. |\n\n### TL;DR\n\nUse Redis Pub/Sub when you need simple, real-time fan-out and can tolerate message loss. Choose **RabbitMQ** when you need reliable delivery with routing/ack semantics. Choose **Kafka** when you need durable, replayable, high-throughput event streaming with consumer groups.\n\n**Note:** Redis Streams (`XADD`/`XREADGROUP`) address many of these gaps — they add persistence, consumer groups, and acknowledgment on top of Redis. If you need \"Redis + durability,\" look at Streams before adding a separate broker.",
+      "response_length": 2915,
+      "elapsed": 22.97,
+      "input_tokens": 3,
+      "output_tokens": 794,
+      "model": "claude-opus-4-6",
+      "cost_usd": 0,
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "All claims are factually correct; minor nuance missing on Redis Cluster Pub/Sub broadcast behavior but not misleading."
+        },
+        "completeness": {
+          "score": 10,
+          "reason": "Covers mechanics, use cases, limitations with a thorough comparison table, and even mentions Redis Streams as a bridge solution."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Dense and well-organized; every section earns its place with minimal redundancy."
+        },
+        "no_overexplaining": {
+          "score": 8,
+          "reason": "The ASCII diagram and basic PUBLISH/SUBSCRIBE syntax are slightly unnecessary for someone asking this question, but kept brief."
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "TL;DR section partly restates the table; multiple headers for a medium-length answer add structural overhead; the Note at the end is useful but adds another section."
+        },
+        "actionability": {
+          "score": 9,
+          "reason": "Clear decision framework (when to pick each broker), specific commands, and the Redis Streams callout is a highly practical tip."
+        }
+      }
+    },
+    {
+      "task_id": "review_code",
+      "task_name": "코드 리뷰",
+      "task_category": "non-coding",
+      "task_prompt": "Review this Python code and identify all issues:\n\n```python\nimport json\nimport os\nimport sys\nimport re\nfrom typing import Optional, List, Dict, Any, Union\n\nclass UserManager:\n    _instance = None\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        self.users = {}\n        self.db = None\n\n    def get_user(self, user_id):\n        try:\n            if user_id in self.users:\n                return self.users[user_id]\n            user = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n            self.users[user_id] = user\n            return user\n        except Exception as e:\n            print(f\"Error: {e}\")\n            return None\n\n    def delete_user(self, user_id):\n        try:\n            self.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n            if user_id in self.users:\n                del self.users[user_id]\n            return True\n        except:\n            return False\n```",
+      "condition": "claude_opus",
+      "condition_name": "Col4: Claude Opus 4.6 CLI",
+      "system_prompt_used": "(claude cli built-in harness)",
+      "timestamp": "2026-04-06T12:48:18.869480",
+      "response": "Here are the issues:\n\n**SQL Injection (Critical)**\nLines with `f\"SELECT * FROM users WHERE id = {user_id}\"` and `f\"DELETE FROM users WHERE id = {user_id}\"` directly interpolate user input into SQL. Use parameterized queries instead.\n\n**Singleton `__init__` resets state on every call**\n`__new__` returns the cached instance, but `__init__` runs every time `UserManager()` is called, resetting `self.users` and `self.db` to their defaults. Guard with an `_initialized` flag.\n\n**`self.db` is always `None`**\nNo method sets `self.db`, so `self.db.query(...)` will always raise `AttributeError`.\n\n**Bare `except:` in `delete_user`**\nCatches everything including `KeyboardInterrupt` and `SystemExit`. Use `except Exception:` at minimum.\n\n**Silent error swallowing**\nBoth methods catch exceptions and return `None`/`False` with no logging (or just a `print`). Callers have no way to distinguish \"user not found\" from \"database is down.\"\n\n**Unused imports**\n`json`, `os`, `sys`, `re`, and the entire `typing` import are unused.\n\n**Cache invalidation**\nThe cache (`self.users`) is never invalidated — if a user is modified externally, `get_user` returns stale data.\n\n---\n\nMinimal fixes for the critical issues:\n\n```python\nclass UserManager:\n    _instance = None\n    _initialized = False\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        if self._initialized:\n            return\n        self._initialized = True\n        self.users = {}\n        self.db = None  # must be set before use\n\n    def get_user(self, user_id):\n        if user_id in self.users:\n            return self.users[user_id]\n        user = self.db.query(\"SELECT * FROM users WHERE id = %s\", (user_id,))\n        self.users[user_id] = user\n        return user\n\n    def delete_user(self, user_id):\n        self.db.query(\"DELETE FROM users WHERE id = %s\", (user_id,))\n        self.users.pop(user_id, None)\n        return True\n```",
+      "response_length": 2001,
+      "elapsed": 16.11,
+      "input_tokens": 3,
+      "output_tokens": 603,
+      "model": "claude-opus-4-6",
+      "cost_usd": 0,
+      "evaluation": {
+        "accuracy": {
+          "score": 10,
+          "reason": "All seven issues identified are correct and precisely described with no misleading claims."
+        },
+        "completeness": {
+          "score": 9,
+          "reason": "Covers all major issues including SQL injection, singleton bug, bare except, unused imports, and cache staleness; only minor nitpicks like missing type hints on methods could be added."
+        },
+        "conciseness": {
+          "score": 9,
+          "reason": "Each issue is stated in 1-2 tight sentences with no filler or repetition."
+        },
+        "no_overexplaining": {
+          "score": 9,
+          "reason": "No unsolicited background or definitions; stays focused on the issues without lecturing on what SQL injection or singletons are."
+        },
+        "response_bloat": {
+          "score": 8,
+          "reason": "Headers per issue and the corrected code block are warranted, but the horizontal rule and slight structural overhead add minor bloat."
+        },
+        "actionability": {
+          "score": 10,
+          "reason": "Every issue includes a specific fix direction, and a complete corrected code block demonstrates all critical fixes concretely."
+        }
+      }
+    },
+    {
+      "task_id": "architecture_decision",
+      "task_name": "아키텍처 의사결정",
+      "task_category": "non-coding",
+      "task_prompt": "We have a monolithic Django app (50k LOC, 10 developers, ~500 RPS). The team wants to break out the payment processing module into a separate service. What are the key considerations, risks, and your recommendation?",
+      "condition": "claude_opus",
+      "condition_name": "Col4: Claude Opus 4.6 CLI",
+      "system_prompt_used": "(claude cli built-in harness)",
+      "timestamp": "2026-04-06T12:49:05.460271",
+      "response": "# Payment Module Extraction: Key Considerations\n\n## Is it the right move?\n\nAt 50k LOC / 10 devs / 500 RPS, you're at the **lower end** of where microservice extraction pays off. The question is whether the pain you're feeling (deploy coupling, scaling needs, compliance scope) justifies the distributed systems complexity you're taking on.\n\n---\n\n## Key Considerations\n\n### 1. Data Boundary\n- **Hardest part.** Identify every table the payment module reads/writes and every join that crosses the boundary.\n- Shared tables (e.g., `users`, `orders`) need a clear ownership strategy — either replicate via events or call back to the monolith via API.\n- Foreign key constraints across service boundaries **cannot exist**. You'll need to handle referential integrity in application code.\n\n### 2. Transaction Integrity\n- Today you likely have DB transactions spanning payment + order state updates (`with transaction.atomic()`). After extraction, you lose that.\n- You need a strategy: **saga pattern**, **outbox pattern**, or **two-phase approach**. Sagas with compensating transactions are the most common choice.\n- Design for the failure case first: what happens when payment succeeds but the monolith fails to update order status?\n\n### 3. Compliance & Security\n- Isolating PCI DSS scope is often the **strongest argument** for extraction. A separate service with its own network boundary, DB, and deploy pipeline shrinks your audit surface.\n- If PCI scope reduction isn't a driver, this benefit disappears.\n\n### 4. Communication Pattern\n- **Synchronous (REST/gRPC):** simpler, but couples availability. If the payment service is down, checkout is down.\n- **Async (events/queue):** better resilience, but harder to reason about. Payment processing is inherently request-response, so you'll likely need sync for the critical path + async for webhooks/reconciliation.\n- Either way, add **idempotency keys** from day one. Payment RPCs must be safe to retry.\n\n### 5. Operational Overhead\n- Separate CI/CD pipeline, monitoring, alerting, on-call rotation.\n- Distributed tracing (OpenTelemetry) becomes mandatory, not optional.\n- You now debug across network boundaries — invest in correlation IDs and structured logging.\n- With 10 devs, ask: who owns this service? If the answer is \"everyone,\" you haven't gained much.\n\n### 6. Migration Strategy\n- **Strangler fig pattern:** route traffic incrementally. Put an internal API interface in the monolith first, then move the implementation behind it.\n- Run both paths in parallel with **shadow/dark mode** to compare results before cutting over.\n- Plan for a long transition period (months, not weeks). You'll have a \"distributed monolith\" phase — that's normal, just don't stay there.\n\n---\n\n## Risks\n\n| Risk | Impact | Mitigation |\n|---|---|---|\n| Partial failure / inconsistency | Payments taken but orders not updated | Saga + idempotency + reconciliation jobs |\n| Latency increase | Checkout gets slower | Connection pooling, gRPC, keep service co-located |\n| Distributed monolith | Worst of both worlds | Clean API contract first, extract second |\n| Team cognitive load | 10 devs now manage 2 deploy targets | Clear ownership, runbooks, on-call |\n| Data migration | Downtime or data loss | Blue-green migration, dual-write period |\n\n---\n\n## Recommendation\n\n**Extract only if at least one of these is true:**\n1. **PCI compliance** — reducing audit scope is a concrete, measurable win.\n2. **Independent scaling** — payment processing has meaningfully different load/resource profiles.\n3. **Independent deploy cadence** — payment changes are blocked by or blocking unrelated deploys, causing real pain.\n\n**If none of those apply**, the better investment is to **modularize within the monolith first**: enforce a clean internal API boundary (Django app with explicit service layer, no cross-module ORM queries), separate the payment models, and treat it as a \"module\" with a public interface. This gives you 80% of the benefits with 20% of the operational cost — and makes future extraction trivial if you need it later.\n\n**Concrete first step either way:** draw the dependency graph between payment code and the rest of the monolith. If it's a hairball of bidirectional imports, fix that inside the monolith before attempting extraction. Extracting tangled code just moves the mess across a network boundary.",
+      "response_length": 4346,
+      "elapsed": 34.67,
+      "input_tokens": 3,
+      "output_tokens": 1116,
+      "model": "claude-opus-4-6",
+      "cost_usd": 0,
+      "evaluation": {
+        "accuracy": {
+          "score": 9,
+          "reason": "All technical claims are correct — sagas, strangler fig, PCI scope, idempotency, FK constraints across services — no misleading statements."
+        },
+        "completeness": {
+          "score": 10,
+          "reason": "Covers data boundaries, transactions, compliance, communication patterns, operational overhead, migration strategy, risks, and a clear recommendation with decision criteria."
+        },
+        "conciseness": {
+          "score": 8,
+          "reason": "Dense and well-structured but the risks table partially restates points already covered in the considerations section."
+        },
+        "no_overexplaining": {
+          "score": 8,
+          "reason": "Mostly stays on target for a senior audience; minor instances like explaining what strangler fig and saga patterns are, but kept brief enough to not be patronizing."
+        },
+        "response_bloat": {
+          "score": 7,
+          "reason": "Heavy use of headers, horizontal rules, bold text, and a table adds structural weight; the 'Is it the right move' intro section is somewhat redundant with the recommendation."
+        },
+        "actionability": {
+          "score": 10,
+          "reason": "Concrete decision criteria, specific first step (dependency graph), named patterns, and a pragmatic 'modularize first' fallback — highly actionable throughout."
+        }
+      }
+    }
+  ]
+}
