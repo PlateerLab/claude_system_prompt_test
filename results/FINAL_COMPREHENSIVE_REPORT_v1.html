@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><title>실험 1: 3-Column 비교 리포트</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background: #0a0a0f; color: #e0e0e0; line-height: 1.6; margin: 0; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+  .hero { background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); border-radius: 16px; padding: 40px; margin-bottom: 24px; border: 1px solid #2a2a4a; }
+  .hero h1 { font-size: 2em; background: linear-gradient(90deg, #00d2ff, #7b2ff7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .card { background: #12121a; border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid #2a2a3a; }
+  .card h2 { color: #fff; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { padding: 10px 14px; text-align: center; border-bottom: 1px solid #2a2a3a; }
+  th { background: #1a1a2e; color: #8888cc; font-size: 0.85em; }
+  .green { color: #00e676; } .blue { color: #448aff; } .orange { color: #ff9100; }
+  .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+  .hero-stat { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 20px; text-align: center; }
+  .hero-stat .value { font-size: 2em; font-weight: 800; }
+  .hero-stat .label { font-size: 0.85em; color: #888; }
+  .footer { text-align: center; padding: 24px; color: #555; font-size: 0.85em; }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="hero">
+  <h1>실험 1: Claude Code 하니스 3-Column 비교</h1>
+  <p style="color:#888;">2026-04-03 | Distilled Qwen3.5-27B (vLLM H200) vs Claude Opus 4.6</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="value green">+34%</div><div class="label">하니스 향상</div></div>
+    <div class="hero-stat"><div class="value blue">8.83</div><div class="label">하니스 점수</div></div>
+    <div class="hero-stat"><div class="value orange">-49%</div><div class="label">토큰 절감</div></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>종합 결과</h2>
+  <table>
+    <tr><th></th><th style="color:#ff5252">Col1: Raw 27B</th><th style="color:#00e676">Col2: 27B+하니스</th><th style="color:#448aff">Col3: Claude CLI</th></tr>
+    <tr><td>종합 점수</td><td style="color:#ff5252;font-size:1.3em;font-weight:800">5.94</td><td style="color:#00e676;font-size:1.3em;font-weight:800">8.83</td><td style="color:#448aff;font-size:1.3em;font-weight:800">5.83</td></tr>
+    <tr><td>평균 응답 길이</td><td>5666자</td><td>1831자</td><td>2042자</td></tr>
+    <tr><td>평균 토큰</td><td>1498</td><td>501</td><td>2566</td></tr>
+    <tr><td>평균 시간</td><td>106.5s</td><td>53.8s</td><td>35.6s</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h2>핵심 발견</h2>
+  <ul style="line-height:2;">
+    <li>하니스로 <strong class="green">+34% 향상</strong> (5.94 → 8.83)</li>
+    <li>토큰 <strong>49% 감소</strong>, 응답시간 37% 감소</li>
+    <li>27B가 Claude보다 하니스를 <strong>더 잘 따름</strong> (RLHF 관성 적음)</li>
+    <li>하니스 철학: "하라"가 아닌 <strong>"하지 마라"</strong> 중심 설계</li>
+  </ul>
+</div>
+<div class="footer">실험 1 리포트 | 2026-04-03 | jinsookim</div>
+</div>
+</body></html>
