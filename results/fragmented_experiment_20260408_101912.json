@@ -1,0 +1,710 @@
+{
+  "experiment": "fragmented_harness_comparison",
+  "timestamp": "20260408_101912",
+  "model": "qwen3.5-27b",
+  "conditions": {
+    "raw": {
+      "name": "Col1: 바닐라 Raw",
+      "tok_estimate": 0,
+      "description": "시스템 프롬프트 없음"
+    },
+    "continuous": {
+      "name": "Col2: 연속 텍스트 하니스",
+      "tok_estimate": 500,
+      "description": "기존 실험 4와 동일한 연속 텍스트 형식"
+    },
+    "fragmented": {
+      "name": "Col3: MD 조각화 하니스",
+      "tok_estimate": 480,
+      "description": "# 헤더로 섹션 구분 — 유출 원본 파일 구조 재현"
+    },
+    "restrictions_only": {
+      "name": "Col4: 제약만 (Don't-only)",
+      "tok_estimate": 120,
+      "description": "긍정 문장 없음, 'Don't X' 규칙만 (~120tok)"
+    }
+  },
+  "tasks": [
+    {
+      "id": "coding_lru_cache",
+      "name": "LRU Cache with TTL",
+      "category": "coding",
+      "conditions": {
+        "raw": {
+          "response": "```python\nimport threading\nimport time\nfrom collections import OrderedDict\nfrom typing import Any, Optional\n\nclass LRUCache:\n    \"\"\"\n    Thread-safe LRU Cache with TTL (Time-To-Live) expiration support.\n    \n    Uses an OrderedDict to maintain insertion/access order for LRU eviction.\n    Uses a threading.Lock to ensure thread safety during concurrent access.\n    \"\"\"\n\n    def __init__(self, max_capacity: int):\n        if max_capacity <= 0:\n            raise ValueError(\"max_capacity must be greater than 0\")\n        \n        self.max_capacity = max_capacity\n        # Stores {key: (value, expiration_timestamp)}\n        self._cache: OrderedDict[str, tuple[Any, float]] = OrderedDict()\n        self._lock = threading.Lock()\n\n    def get(self, key: str) -> Optional[Any]:\n        \"\"\"\n        Retrieve a value from the cache.\n        Returns None if the key is missing or has expired.\n        Moves the accessed key to the end (Most Recently Used).\n        \"\"\"\n        with self._lock:\n            if key not in self._cache:\n                return None\n            \n            value, expiration_time = self._cache[key]\n            \n            # Check for expiration\n            if time.time() > expiration_time:\n                del self._cache[key]\n                return None\n            \n            # Mark as most recently used\n            self._cache.move_to_end(key)\n            return value\n\n    def put(self, key: str, value: Any, ttl_seconds: int = 60) -> None:\n        \"\"\"\n        Store a value in the cache with a specific TTL.\n        If the key exists, updates the value and resets the TTL.\n        If the cache is full, evicts the Least Recently Used item.\n        \"\"\"\n        with self._lock:\n            expiration_time = time.time() + ttl_seconds\n            \n            if key in self._cache:\n                # Update existing key: refresh TTL and move to end\n                self._cache[key] = (value, expiration_time)\n                self._cache.move_to_end(key)\n                return\n\n            # Add new key\n            if len(self._cache) >= self.max_capacity:\n                # Remove the least recently used item (first item in OrderedDict)\n                self._cache.popitem(last=False)\n            \n            self._cache[key] = (value, expiration_time)\n\n# ==========================================\n# Usage Example\n# ==========================================\nif __name__ == \"__main__\":\n    # Initialize cache with max capacity of 3\n    cache = LRUCache(max_capacity=3)\n\n    print(\"--- Testing Basic Put/Get ---\")\n    cache.put(\"a\", \"apple\", ttl_seconds=5)\n    cache.put(\"b\", \"banana\", ttl_seconds=5)\n    cache.put(\"c\", \"cherry\", ttl_seconds=5)\n    \n    print(f\"Get 'a': {cache.get('a')}\")  # Expected: apple\n    print(f\"Get 'b': {cache.get('b')}\")  # Expected: banana\n    \n    print(\"\\n--- Testing LRU Eviction ---\")\n    # Cache is full (3 items). Adding 'd' should evict 'c' \n    # (since 'a' and 'b' were accessed via get(), making them MRU)\n    cache.put(\"d\", \"date\", ttl_seconds=5)\n    \n    print(f\"Get 'c' (should be evicted): {cache.get('c')}\")  # Expected: None\n    print(f\"Get 'd': {cache.get('d')}\")                      # Expected: date\n\n    print(\"\\n--- Testing TTL Expiration ---\")\n    cache.put(\"expiring\", \"short_life\", ttl_seconds=2)\n    print(f\"Get 'expiring' immediately: {cache.get('expiring')}\") # Expected: short_life\n    \n    print(\"Waiting 3 seconds for expiration...\")\n    time.sleep(3)\n    \n    print(f\"Get 'expiring' after sleep: {cache.get('expiring')}\") # Expected: None\n\n    print(\"\\n--- Testing Thread Safety (Basic Stress Test) ---\")\n    import concurrent.futures\n    \n    def worker(cache_instance, key, value):\n        cache_instance.put(key, value, ttl_seconds=10)\n        return cache_instance.get(key)\n\n    # Run 100 threads putting/getting simultaneously\n    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:\n        futures = [executor.submit(worker, cache, f\"key_{i}\", f\"value_{i}\") for i in range(100)]\n        results = [f.result() for f in concurrent.futures.as_completed(futures)]\n    \n    print(f\"Completed {len(results)} concurrent operations without deadlock.\")\n```",
+          "response_length": 4168,
+          "elapsed": 38.11,
+          "input_tokens": 86,
+          "output_tokens": 3509,
+          "evaluation": {
+            "scores": {
+              "correctness": 10,
+              "efficiency": 10,
+              "conciseness": 6,
+              "no_overengineering": 4,
+              "response_bloat": 7,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "All features work correctly: get returns None for missing/expired, put evicts LRU when full, TTL logic is sound",
+              "efficiency": "OrderedDict gives O(1) get/put/move_to_end; lock scope is minimal and correct",
+              "conciseness": "Verbose variable names (expiration_time vs exp_t), separator comments, blank lines between every logical block add unnecessary bulk",
+              "no_overengineering": "Type hints throughout, full docstrings on every method, ValueError for capacity, Optional[Any] return type — none of this was asked for",
+              "response_bloat": "No prose before the code, but the usage example is heavily commented with expected output annotations that add noise",
+              "instruction_following": "All four requirements met: get/put with correct signatures, max capacity with LRU eviction, TTL, thread-safe, single class, usage example included"
+            },
+            "average": 7.83
+          }
+        },
+        "continuous": {
+          "response": "```python\nfrom collections import OrderedDict\nimport threading\nimport time\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache = OrderedDict()  # key -> (value, expiry_time)\n        self.lock = threading.RLock()\n\n    def get(self, key) -> any:\n        with self.lock:\n            if key not in self.cache:\n                return None\n            \n            value, expiry = self.cache[key]\n            if time.time() > expiry:\n                del self.cache[key]\n                return None\n            \n            # Move to end (most recently used)\n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds: int = 60):\n        with self.lock:\n            expiry = time.time() + ttl_seconds\n            \n            if key in self.cache:\n                self.cache.move_to_end(key)\n            \n            self.cache[key] = (value, expiry)\n            \n            # Evict oldest entries if over capacity\n            while len(self.cache) > self.capacity:\n                self.cache.popitem(last=False)\n            \n            # Clean up expired entries\n            self._cleanup_expired()\n\n    def _cleanup_expired(self):\n        now = time.time()\n        expired_keys = [k for k, (_, exp) in self.cache.items() if now > exp]\n        for key in expired_keys:\n            del self.cache[key]\n\n\n# Usage example\nif __name__ == \"__main__\":\n    cache = LRUCache(capacity=3)\n    \n    cache.put(\"a\", 1, ttl_seconds=5)\n    cache.put(\"b\", 2, ttl_seconds=5)\n    cache.put(\"c\", 3, ttl_seconds=5)\n    \n    print(cache.get(\"a\"))  # 1\n    print(cache.get(\"b\"))  # 2\n    \n    cache.put(\"d\", 4)  # Evicts \"c\" (least recently used)\n    print(cache.get(\"c\"))  # None\n    \n    time.sleep(6)\n    print(cache.get(\"a\"))  # None (expired)\n```",
+          "response_length": 1831,
+          "elapsed": 6.74,
+          "input_tokens": 705,
+          "output_tokens": 611,
+          "evaluation": {
+            "scores": {
+              "correctness": 9,
+              "efficiency": 7,
+              "conciseness": 6,
+              "no_overengineering": 6,
+              "response_bloat": 9,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct: TTL check, LRU ordering, eviction all work; minor issue is _cleanup_expired called after eviction inside put, which can undercount capacity momentarily but doesn't break correctness.",
+              "efficiency": "OrderedDict gives O(1) get/put/move_to_end; but _cleanup_expired on every put is O(n) and unnecessary since lazy expiry on get is sufficient.",
+              "conciseness": "_cleanup_expired is redundant bloat (lazy expiry in get already handles this); extra blank lines between every method body add visual noise.",
+              "no_overengineering": "Type hints not requested (-> any, : int) and _cleanup_expired is an unrequested extra feature adding complexity without benefit.",
+              "response_bloat": "No prose, just code and a usage example as requested — clean.",
+              "instruction_following": "All requirements met: get/put with TTL default 60s, LRU eviction, thread-safe with RLock, single class, usage example included."
+            },
+            "average": 7.83
+          }
+        },
+        "fragmented": {
+          "response": "```python\nimport time\nimport threading\nfrom collections import OrderedDict\n\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache = OrderedDict()  # key -> (value, expiry_time)\n        self.lock = threading.RLock()\n\n    def get(self, key) -> any:\n        with self.lock:\n            if key not in self.cache:\n                return None\n            \n            value, expiry = self.cache[key]\n            if time.time() > expiry:\n                del self.cache[key]\n                return None\n            \n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds: int = 60) -> None:\n        with self.lock:\n            expiry = time.time() + ttl_seconds\n            if key in self.cache:\n                self.cache.move_to_end(key)\n            \n            self.cache[key] = (value, expiry)\n            \n            if len(self.cache) > self.capacity:\n                self.cache.popitem(last=False)\n\n    def _cleanup_expired(self) -> None:\n        \"\"\"Remove all expired entries (call periodically if needed).\"\"\"\n        with self.lock:\n            now = time.time()\n            expired = [k for k, (_, exp) in self.cache.items() if now > exp]\n            for k in expired:\n                del self.cache[k]\n\n\n# Usage example\nif __name__ == \"__main__\":\n    cache = LRUCache(capacity=3)\n    \n    cache.put(\"a\", 1, ttl_seconds=5)\n    cache.put(\"b\", 2, ttl_seconds=5)\n    cache.put(\"c\", 3, ttl_seconds=5)\n    \n    print(cache.get(\"a\"))  # 1\n    print(cache.get(\"b\"))  # 2\n    \n    cache.put(\"d\", 4)  # Evicts \"c\" (LRU)\n    print(cache.get(\"c\"))  # None\n    \n    time.sleep(6)\n    print(cache.get(\"a\"))  # None (expired)\n```",
+          "response_length": 1726,
+          "elapsed": 6.77,
+          "input_tokens": 628,
+          "output_tokens": 607,
+          "evaluation": {
+            "scores": {
+              "correctness": 9,
+              "efficiency": 10,
+              "conciseness": 7,
+              "no_overengineering": 5,
+              "response_bloat": 9,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct: LRU ordering, TTL expiry on get, eviction on overflow all work properly",
+              "efficiency": "OrderedDict gives O(1) get/put/move_to_end; optimal for this problem",
+              "conciseness": "Unnecessary blank lines inside methods, verbose `ttl_seconds: int` param name, `_cleanup_expired` not asked for adds bulk",
+              "no_overengineering": "Type hints not asked for (-> any, -> None, : int), docstring on _cleanup_expired not asked for, _cleanup_expired method itself not asked for",
+              "response_bloat": "No prose, just code and minimal inline comments — clean",
+              "instruction_following": "All required features implemented: get, put with default ttl=60, capacity+LRU eviction, thread-safe with RLock"
+            },
+            "average": 8.33
+          }
+        },
+        "restrictions_only": {
+          "response": "```python\nimport time\nimport threading\nfrom collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity):\n        self.capacity = capacity\n        self.cache = OrderedDict()\n        self.lock = threading.Lock()\n\n    def get(self, key):\n        with self.lock:\n            if key not in self.cache:\n                return None\n            value, expiry = self.cache[key]\n            if time.time() > expiry:\n                del self.cache[key]\n                return None\n            self.cache.move_to_end(key)\n            return value\n\n    def put(self, key, value, ttl_seconds=60):\n        with self.lock:\n            if key in self.cache:\n                self.cache.move_to_end(key)\n            elif len(self.cache) >= self.capacity:\n                self.cache.popitem(last=False)\n            self.cache[key] = (value, time.time() + ttl_seconds)\n\n# Usage example\ncache = LRUCache(2)\ncache.put(\"a\", 1)\ncache.put(\"b\", 2)\ncache.put(\"c\", 3)  # Evicts \"a\"\nprint(cache.get(\"a\"))  # None\nprint(cache.get(\"b\"))  # 1\n```",
+          "response_length": 1034,
+          "elapsed": 24.53,
+          "input_tokens": 265,
+          "output_tokens": 2221,
+          "evaluation": {
+            "scores": {
+              "correctness": 9,
+              "efficiency": 10,
+              "conciseness": 10,
+              "no_overengineering": 10,
+              "response_bloat": 10,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct; minor issue: put() updates value but doesn't update expiry when key already exists (move_to_end but keeps old expiry)",
+              "efficiency": "OrderedDict gives O(1) get/put/eviction, threading.Lock is minimal overhead",
+              "conciseness": "No bloat, clean variable names, no unnecessary blank lines or redundant code",
+              "no_overengineering": "No type hints, no docstrings, no error handling, exactly what was asked",
+              "response_bloat": "Pure code with minimal inline comments, no prose",
+              "instruction_following": "All four requirements met: get, put with TTL, LRU eviction, thread-safe, usage example included"
+            },
+            "average": 9.83
+          }
+        }
+      }
+    },
+    {
+      "id": "coding_group_by",
+      "name": "group_by 함수",
+      "category": "coding",
+      "conditions": {
+        "raw": {
+          "response": "Here's a Python function `group_by` that groups a list of items based on the result of a provided key function, returning a dictionary where each key maps to a list of corresponding items. It does not use `itertools.groupby`.\n\n```python\ndef group_by(items, key_fn):\n    \"\"\"\n    Groups items by the result of key_fn.\n\n    Args:\n        items: An iterable of items to group.\n        key_fn: A function that takes an item and returns a grouping key.\n\n    Returns:\n        A dictionary mapping each unique key to a list of items that produced that key.\n    \"\"\"\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        if key not in result:\n            result[key] = []\n        result[key].append(item)\n    return result\n```\n\n### Example Usage\n\n```python\n# Group numbers by even/odd\nnumbers = [1, 2, 3, 4, 5, 6]\nprint(group_by(numbers, lambda x: 'even' if x % 2 == 0 else 'odd'))\n# Output: {'odd': [1, 3, 5], 'even': [2, 4, 6]}\n\n# Group strings by length\nwords = ['cat', 'dog', 'elephant', 'ant', 'bird']\nprint(group_by(words, len))\n# Output: {3: ['cat', 'dog', 'ant'], 8: ['elephant'], 4: ['bird']}\n\n# Group people by age\npeople = [\n    {'name': 'Alice', 'age': 25},\n    {'name': 'Bob', 'age': 30},\n    {'name': 'Charlie', 'age': 25}\n]\nprint(group_by(people, lambda p: p['age']))\n# Output: {25: [{'name': 'Alice', 'age': 25}, {'name': 'Charlie', 'age': 25}], \n#          30: [{'name': 'Bob', 'age': 30}]}\n\n# Empty input\nprint(group_by([], lambda x: x))\n# Output: {}\n```\n\n### Alternative Implementation Using `setdefault`\n\nFor slightly more concise code, you can use `dict.setdefault`:\n\n```python\ndef group_by(items, key_fn):\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        result.setdefault(key, []).append(item)\n    return result\n```\n\nBoth implementations are functionally equivalent and avoid using `itertools.groupby`.",
+          "response_length": 1860,
+          "elapsed": 9.94,
+          "input_tokens": 46,
+          "output_tokens": 899,
+          "evaluation": {
+            "scores": {
+              "correctness": 10,
+              "efficiency": 10,
+              "conciseness": 6,
+              "no_overengineering": 4,
+              "response_bloat": 4,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct: iterates items, extracts key, appends to list; handles empty input and all edge cases.",
+              "efficiency": "O(n) single pass with O(1) dict operations per item — optimal.",
+              "conciseness": "Two implementations given when one was asked for; docstring with Args/Returns block adds bulk not requested.",
+              "no_overengineering": "Full Google-style docstring not asked for; providing two implementations is excess; setdefault alternative is unrequested.",
+              "response_bloat": "Intro prose, four usage examples, section headers, and a second implementation all pad the response beyond what was needed.",
+              "instruction_following": "Does not use itertools.groupby, returns dict of lists, signature matches exactly."
+            },
+            "average": 7.33
+          }
+        },
+        "continuous": {
+          "response": "```python\ndef group_by(items, key_fn):\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        if key not in result:\n            result[key] = []\n        result[key].append(item)\n    return result\n```",
+          "response_length": 218,
+          "elapsed": 3.12,
+          "input_tokens": 665,
+          "output_tokens": 131,
+          "evaluation": {
+            "scores": {
+              "correctness": 10,
+              "efficiency": 9,
+              "conciseness": 9,
+              "no_overengineering": 10,
+              "response_bloat": 10,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct — iterates items, builds key, appends to list, returns dict.",
+              "efficiency": "O(n) single pass; could use setdefault or defaultdict but this is fine.",
+              "conciseness": "Clean and minimal; the explicit key-not-in-result check is slightly more verbose than setdefault but not bloated.",
+              "no_overengineering": "No type hints, no docstrings, no error handling, no unnecessary abstractions — exactly what was asked.",
+              "response_bloat": "Response is code only, zero prose.",
+              "instruction_following": "Implements group_by(items, key_fn) returning dict of lists without itertools.groupby."
+            },
+            "average": 9.67
+          }
+        },
+        "fragmented": {
+          "response": "```python\ndef group_by(items, key_fn):\n    result = {}\n    for item in items:\n        key = key_fn(item)\n        result.setdefault(key, []).append(item)\n    return result\n```",
+          "response_length": 174,
+          "elapsed": 3.04,
+          "input_tokens": 588,
+          "output_tokens": 241,
+          "evaluation": {
+            "scores": {
+              "correctness": 10,
+              "efficiency": 10,
+              "conciseness": 10,
+              "no_overengineering": 10,
+              "response_bloat": 10,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct — groups items by key_fn result using setdefault, handles all cases",
+              "efficiency": "Single O(n) pass with O(k) dict lookups, optimal for this problem",
+              "conciseness": "4 lines, no bloat, variable names are clear and minimal",
+              "no_overengineering": "No type hints, no docstrings, no error handling — exactly what was asked",
+              "response_bloat": "Response is code only, zero prose",
+              "instruction_following": "Returns dict of lists, uses no itertools.groupby, accepts items and key_fn"
+            },
+            "average": 10.0
+          }
+        },
+        "restrictions_only": {
+          "response": "```python\ndef group_by(items, key_fn):\n    result = {}\n    for item in items:\n        result.setdefault(key_fn(item), []).append(item)\n    return result\n```",
+          "response_length": 156,
+          "elapsed": 33.3,
+          "input_tokens": 225,
+          "output_tokens": 2830,
+          "evaluation": {
+            "scores": {
+              "correctness": 10,
+              "efficiency": 10,
+              "conciseness": 10,
+              "no_overengineering": 10,
+              "response_bloat": 10,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Correctly groups items by key_fn result using setdefault pattern",
+              "efficiency": "Single pass O(n), no unnecessary overhead",
+              "conciseness": "4 lines, no bloat, perfect variable naming",
+              "no_overengineering": "No type hints, no docstrings, no error handling — exactly what was asked",
+              "response_bloat": "Pure code, no prose",
+              "instruction_following": "Implements group_by(items, key_fn) returning dict of lists without itertools.groupby"
+            },
+            "average": 10.0
+          }
+        }
+      }
+    },
+    {
+      "id": "coding_merge_intervals",
+      "name": "Merge Intervals",
+      "category": "coding",
+      "conditions": {
+        "raw": {
+          "response": "Here's a Python function that merges overlapping intervals from a given list of `[start, end]` pairs. It returns a new list with all overlapping intervals combined:\n\n```python\ndef merge_intervals(intervals):\n    \"\"\"\n    Merges overlapping intervals from a list of [start, end] pairs.\n\n    Args:\n        intervals (List[List[int]]): A list of intervals where each interval is [start, end].\n\n    Returns:\n        List[List[int]]: A new list with overlapping intervals merged.\n    \"\"\"\n    if not intervals:\n        return []\n\n    # Sort intervals by start time\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n\n    merged = [list(sorted_intervals[0])]  # Start with the first interval (as a copy)\n\n    for current in sorted_intervals[1:]:\n        last = merged[-1]\n        if current[0] <= last[1]:\n            # Overlapping intervals; merge them\n            last[1] = max(last[1], current[1])\n        else:\n            # Non-overlapping; add as a new interval\n            merged.append(list(current))\n\n    return merged\n```\n\n### Example Usage:\n\n```python\nprint(merge_intervals([[1,3],[2,6],[8,10],[15,18]]))\n# Output: [[1, 6], [8, 10], [15, 18]]\n\nprint(merge_intervals([[1,4],[4,5]]))\n# Output: [[1, 5]]\n\nprint(merge_intervals([[1,4],[0,4]]))\n# Output: [[0, 4]]\n\nprint(merge_intervals([]))\n# Output: []\n\nprint(merge_intervals([[1,2],[3,4],[5,6]]))\n# Output: [[1, 2], [3, 4], [5, 6]]\n\nprint(merge_intervals([[1,10],[2,6],[8,10],[9,19]]))\n# Output: [[1, 19]]\n```\n\n### How It Works:\n\n1. **Sort Intervals:** The intervals are sorted by their start times.\n2. **Iterate and Merge:** For each interval, check if it overlaps with the last merged interval.\n   - If it does, update the end time to the maximum of both.\n   - If not, append it as a new interval.\n3. **Return Result:** Return the final list of merged intervals.\n\n### Time and Space Complexity:\n\n- **Time Complexity:** O(n log n), due to sorting.\n- **Space Complexity:** O(n), for storing the merged result.\n\nThis implementation ensures no modification to the original input and handles all common edge cases effectively.",
+          "response_length": 2084,
+          "elapsed": 9.71,
+          "input_tokens": 80,
+          "output_tokens": 933,
+          "evaluation": {
+            "scores": {
+              "correctness": 10,
+              "efficiency": 10,
+              "conciseness": 6,
+              "no_overengineering": 3,
+              "response_bloat": 3,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct: sorts by start, merges overlapping intervals using max end, handles empty input and edge cases.",
+              "efficiency": "O(n log n) sort + O(n) single pass — optimal for this problem.",
+              "conciseness": "Variable names are fine but sorted_intervals is mildly verbose; code itself is clean, no unused imports.",
+              "no_overengineering": "Full docstring with Args/Returns not asked for; list() copies are reasonable but docstring is pure overhead.",
+              "response_bloat": "Six example prints, a 'How It Works' section, and a complexity analysis — none of it was asked for.",
+              "instruction_following": "Returns a new list of merged intervals exactly as specified, matches the given example output."
+            },
+            "average": 7.0
+          }
+        },
+        "continuous": {
+          "response": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort by start time\n    intervals.sort(key=lambda x: x[0])\n    \n    merged = [intervals[0]]\n    \n    for start, end in intervals[1:]:\n        last_end = merged[-1][1]\n        \n        if start <= last_end:\n            # Overlapping - merge\n            merged[-1][1] = max(last_end, end)\n        else:\n            # Non-overlapping - add new interval\n            merged.append([start, end])\n    \n    return merged\n```",
+          "response_length": 508,
+          "elapsed": 3.05,
+          "input_tokens": 699,
+          "output_tokens": 216,
+          "evaluation": {
+            "scores": {
+              "correctness": 9,
+              "efficiency": 10,
+              "conciseness": 8,
+              "no_overengineering": 10,
+              "response_bloat": 10,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct but mutates input list in-place via sort and merged[-1][1] assignment",
+              "efficiency": "O(n log n) sort + O(n) scan is optimal for this problem",
+              "conciseness": "Inline comments add minor bloat but variable names and structure are clean",
+              "no_overengineering": "No type hints, no docstrings, no unnecessary abstractions — exactly what was asked",
+              "response_bloat": "Response is pure code with no prose",
+              "instruction_following": "Implements merge_intervals with correct signature and matches the given example behavior"
+            },
+            "average": 9.5
+          }
+        },
+        "fragmented": {
+          "response": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort by start time\n    intervals.sort()\n    \n    merged = [intervals[0]]\n    \n    for start, end in intervals[1:]:\n        last_end = merged[-1][1]\n        \n        if start <= last_end:  # Overlapping\n            merged[-1][1] = max(last_end, end)\n        else:  # Non-overlapping\n            merged.append([start, end])\n    \n    return merged\n```",
+          "response_length": 441,
+          "elapsed": 2.55,
+          "input_tokens": 622,
+          "output_tokens": 196,
+          "evaluation": {
+            "scores": {
+              "correctness": 9,
+              "efficiency": 9,
+              "conciseness": 8,
+              "no_overengineering": 10,
+              "response_bloat": 10,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Logic is correct but mutates input list via sort() and direct index assignment on shared references",
+              "efficiency": "O(n log n) sort + O(n) merge is optimal for this problem",
+              "conciseness": "Clean and minimal, though last_end variable is a minor extra extraction",
+              "no_overengineering": "No type hints, no docstrings, no error handling — exactly what was asked",
+              "response_bloat": "Pure code, no prose whatsoever",
+              "instruction_following": "Returns merged intervals exactly as specified with correct example behavior"
+            },
+            "average": 9.33
+          }
+        },
+        "restrictions_only": {
+          "response": "```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    intervals.sort(key=lambda x: x[0])\n    merged = [list(intervals[0])]\n    \n    for start, end in intervals[1:]:\n        if start <= merged[-1][1]:\n            merged[-1][1] = max(merged[-1][1], end)\n        else:\n            merged.append([start, end])\n    \n    return merged\n```",
+          "response_length": 369,
+          "elapsed": 39.35,
+          "input_tokens": 259,
+          "output_tokens": 3549,
+          "evaluation": {
+            "scores": {
+              "correctness": 10,
+              "efficiency": 9,
+              "conciseness": 9,
+              "no_overengineering": 10,
+              "response_bloat": 10,
+              "instruction_following": 10
+            },
+            "reasons": {
+              "correctness": "Correctly handles empty input, sorts by start, and merges overlapping intervals with proper max logic",
+              "efficiency": "O(n log n) sort + O(n) merge is optimal for this problem",
+              "conciseness": "Clean and minimal, though `list(intervals[0])` copy is slightly verbose vs direct indexing",
+              "no_overengineering": "No type hints, no docstrings, no error handling beyond empty check — exactly what was asked",
+              "response_bloat": "Pure code, no prose",
+              "instruction_following": "Implements exactly the requested function signature and behavior"
+            },
+            "average": 9.67
+          }
+        }
+      }
+    },
+    {
+      "id": "explain_redis_pubsub",
+      "name": "Redis Pub/Sub 설명",
+      "category": "non-coding",
+      "conditions": {
+        "raw": {
+          "response": "Redis Pub/Sub (Publish/Subscribe) is a messaging pattern built into Redis that allows clients to publish messages to named channels and other clients to subscribe to those channels to receive the messages in real time. It's lightweight and fast but lacks some features of more robust message brokers like RabbitMQ or Apache Kafka.\n\n---\n\n## 1. How Redis Pub/Sub Works\n\n### Core Concepts\n\n- **Channels**: Named topics to which messages are published.\n- **Publishers**: Clients that send messages to channels.\n- **Subscribers**: Clients that listen to one or more channels for incoming messages.\n\n### Basic Flow\n\n```bash\n# Terminal 1: Subscribe to channel 'news'\nSUBSCRIBE news\n\n# Terminal 2: Publish message to 'news'\nPUBLISH news \"Breaking news!\"\n```\n\nWhen a message is published, all active subscribers on that channel receive it immediately.\n\n### Key Commands\n\n| Command     | Description                          |\n|-------------|--------------------------------------|\n| `PUBLISH`   | Send a message to a channel          |\n| `SUBSCRIBE` | Subscribe to one or more channels    |\n| `PSUBSCRIBE`| Subscribe using pattern matching     |\n| `UNSUBSCRIBE` | Unsubscribe from specific channels |\n| `PUNSUBSCRIBE` | Unsubscribe from pattern channels |\n\n### Example (Python)\n\n```python\nimport redis\n\nr = redis.Redis()\n\n# Publisher\nr.publish('orders', '{\"order_id\": 123}')\n\n# Subscriber\npubsub = r.pubsub()\npubsub.subscribe('orders')\nfor message in pubsub.listen():\n    if message['type'] == 'message':\n        print(f\"Received: {message['data']}\")\n```\n\n---\n\n## 2. When to Use Redis Pub/Sub\n\n### ✅ Ideal Use Cases\n\n- **Real-time notifications** (e.g., chat apps, live updates)\n- **Event broadcasting** across multiple services\n- **Simple decoupling** between components\n- **Low-latency internal communication** within microservices\n- **Prototyping or MVPs** where simplicity matters\n\n### ⚠️ Not Suitable For\n\n- **Message persistence** – no guarantee of delivery after subscriber disconnects\n- **High reliability requirements** – no acknowledgments or retries\n- **Complex routing or fan-out patterns**\n- **Scalable event streaming** with ordering guarantees\n\n---\n\n## 3. Limitations vs. Dedicated Message Brokers\n\n| Feature                  | Redis Pub/Sub         | RabbitMQ / Kafka              |\n|--------------------------|------------------------|-------------------------------|\n| **Message Persistence**  | ❌ No                  | ✅ Yes                        |\n| **Delivery Guarantees**  | ❌ Fire-and-forget     | ✅ At-least-once / Exactly-once |\n| **Consumer Acknowledgment** | ❌ None             | ✅ Supported                  |\n| **Message Queueing**     | ❌ No buffering        | ✅ Supports queues/backpressure |\n| **Ordering**             | ❌ Not guaranteed      | ✅ Partition-based (Kafka)    |\n| **Routing Flexibility**  | ❌ Channel-based only  | ✅ Exchanges, bindings, etc.  |\n| **Scalability**          | ⚠️ Limited             | ✅ Highly scalable            |\n| **Backpressure Handling**| ❌ None                | ✅ Built-in                   |\n| **Dead Letter Queues**   | ❌ Not supported       | ✅ Available                  |\n| **Monitoring & Observability** | ⚠️ Minimal       | ✅ Rich tooling               |\n\n### Practical Implications\n\n- **Lost Messages:** If a subscriber is offline when a message is published, it's lost forever.\n- **No Retry Logic:** Failed processing cannot be retried automatically.\n- **No Consumer Groups:** All subscribers get every message; no partitioning or load balancing.\n- **No Backpressure:** Publishers can overwhelm subscribers without flow control.\n\n---\n\n## 4. Comparison Summary\n\n| Scenario                            | Recommended Tool     |\n|-------------------------------------|-----------------------|\n| Real-time chat or notifications     | Redis Pub/Sub         |\n| Critical order/event processing     | RabbitMQ / Kafka      |\n| High-throughput event streaming     | Kafka                 |\n| Complex routing or filtering logic  | RabbitMQ              |\n| Guaranteed delivery & replayability | Kafka                 |\n| Simple internal service signaling   | Redis Pub/Sub         |\n\n---\n\n## 5. Best Practices for Redis Pub/Sub\n\n- Use for non-critical, best-effort messaging\n- Implement application-level acknowledgment if needed\n- Monitor subscriber counts and latency\n- Combine with Redis Streams for persistent messaging needs\n- Avoid relying on it for mission-critical workflows\n\n---\n\n## Conclusion\n\nRedis Pub/Sub is excellent for lightweight, low-latency, fire-and-forget messaging in scenarios where simplicity and speed matter more than durability or reliability. However, for production-grade systems requiring message persistence, delivery guarantees, and scalability, dedicated brokers like RabbitMQ or Kafka are far better suited.",
+          "response_length": 4799,
+          "elapsed": 13.29,
+          "input_tokens": 38,
+          "output_tokens": 1148,
+          "evaluation": {
+            "scores": {
+              "accuracy": 9,
+              "completeness": 9,
+              "conciseness": 5,
+              "no_overexplaining": 4,
+              "response_bloat": 4,
+              "actionability": 7
+            },
+            "reasons": {
+              "accuracy": "All technical claims are correct; minor omission that Redis Streams (mentioned in best practices) is the actual persistence alternative, but nothing is wrong.",
+              "completeness": "Covers all three asked dimensions — how it works, when to use it, and limitations vs RabbitMQ/Kafka — with appropriate depth.",
+              "conciseness": "Comparison summary table largely repeats the limitations table; best practices section repeats points already made; conclusion restates the intro.",
+              "no_overexplaining": "Basic CLI commands and Python snippet explaining subscribe/publish are elementary for anyone who would ask this question; command reference table is unsolicited padding.",
+              "response_bloat": "Five major headers plus nested subheaders, two comparison tables covering overlapping content, a best practices section, and a conclusion — structural overkill for a conceptual question.",
+              "actionability": "The scenario-to-tool mapping table and 'Practical Implications' section give concrete decision guidance, though best practices are generic."
+            },
+            "average": 6.33
+          }
+        },
+        "continuous": {
+          "response": "## How Redis Pub/Sub Works\n\nRedis Pub/Sub uses channels as the communication medium:\n\n1. **Publishers** send messages to named channels (`PUBLISH channel message`)\n2. **Subscribers** listen to channels (`SUBSCRIBE channel`)\n3. When a message is published, all subscribers on that channel receive it immediately\n4. Messages are **fire-and-forget** — once delivered (or if no subscribers exist), they're discarded\n\n```redis\n# Client A subscribes\nSUBSCRIBE news\n\n# Client B publishes\nPUBLISH news \"Breaking news!\"\n\n# Client A receives\n(news) Breaking news!\n```\n\n## When to Use It\n\n| Good For | Not Good For |\n|----------|--------------|\n| Real-time notifications | Message persistence |\n| Event broadcasting | Guaranteed delivery |\n| Simple decoupling | Complex routing |\n| Low-latency internal comms | High-throughput systems |\n| Chat rooms, live updates | Critical business transactions |\n\n## Limitations vs. RabbitMQ/Kafka\n\n| Feature | Redis Pub/Sub | RabbitMQ | Kafka |\n|---------|---------------|----------|-------|\n| **Message Persistence** | ❌ None | ✅ Durable queues | ✅ Log-based storage |\n| **Delivery Guarantees** | ❌ At-most-once | ✅ At-least-once | ✅ At-least-once |\n| **Consumer Groups** | ❌ No | ✅ Yes | ✅ Yes |\n| **Backpressure** | ❌ No buffering | ✅ Queue limits | ✅ Partitioned logs |\n| **Replayability** | ❌ Impossible | ❌ Limited | ✅ Full replay |\n| **Scalability** | ⚠️ Single-node bottleneck | ✅ Clustering | ✅ Horizontal scaling |\n| **Complex Routing** | ❌ Channel-only | ✅ Exchanges/routing keys | ✅ Topic/partition |\n\n## Key Takeaway\n\nUse Redis Pub/Sub for **simple, ephemeral broadcast scenarios** where losing messages is acceptable. Choose RabbitMQ or Kafka when you need **reliability, persistence, or complex messaging patterns**.",
+          "response_length": 1757,
+          "elapsed": 6.11,
+          "input_tokens": 657,
+          "output_tokens": 501,
+          "evaluation": {
+            "scores": {
+              "accuracy": 8,
+              "completeness": 9,
+              "conciseness": 7,
+              "no_overexplaining": 7,
+              "response_bloat": 7,
+              "actionability": 8
+            },
+            "reasons": {
+              "accuracy": "Mostly correct; 'single-node bottleneck' overstates Redis Pub/Sub's scaling limits since Redis Cluster exists, though Pub/Sub in cluster mode has real constraints.",
+              "completeness": "All three requested aspects (mechanics, use cases, limitations vs RabbitMQ/Kafka) are covered with appropriate depth.",
+              "conciseness": "Tables are tight and efficient, but the 'Key Takeaway' paragraph restates what the comparison table already makes obvious.",
+              "no_overexplaining": "Someone asking about Pub/Sub vs Kafka/RabbitMQ likely knows what PUBLISH/SUBSCRIBE do — the CLI example adds marginal value and skews basic.",
+              "response_bloat": "Four headers plus a trailing 'Key Takeaway' section that duplicates the table summary; the section structure is otherwise justified for a comparative question.",
+              "actionability": "The dual table format (use-case fit + feature matrix) gives clear, specific decision signals rather than vague guidance."
+            },
+            "average": 7.67
+          }
+        },
+        "fragmented": {
+          "response": "## How Redis Pub/Sub Works\n\nRedis Pub/Sub uses channels as the communication medium:\n\n- **Publishers** send messages to named channels (`PUBLISH channel message`)\n- **Subscribers** listen to channels (`SUBSCRIBE channel`)\n- Messages are delivered in real-time to all active subscribers\n- No message persistence — if no subscriber exists when published, the message is lost\n\n```redis\n# Channel: \"notifications\"\nPUBLISH notifications \"user logged in\"  # Returns count of receivers\nSUBSCRIBE notifications                 # Blocks until message arrives\n```\n\n## When to Use It\n\n| Use Case | Good Fit |\n|----------|----------|\n| Real-time notifications | ✅ Yes |\n| Live dashboards/streaming data | ✅ Yes |\n| Simple event broadcasting | ✅ Yes |\n| Chat applications (basic) | ✅ Yes |\n| Complex workflows/retries | ❌ No |\n| Message durability required | ❌ No |\n\n## Limitations vs. RabbitMQ/Kafka\n\n| Feature | Redis Pub/Sub | RabbitMQ | Kafka |\n|---------|---------------|----------|-------|\n| **Message Persistence** | ❌ None | ✅ Durable queues | ✅ Log-based storage |\n| **Delivery Guarantees** | ❌ At-most-once | ✅ At-least-once | ✅ At-least-once |\n| **Consumer Groups** | ❌ All get all messages | ✅ Selective routing | ✅ Partitioned consumers |\n| **Backpressure** | ❌ None | ✅ Queue limits | ✅ Configurable |\n| **Replay/Reprocessing** | ❌ Impossible | ✅ With durable queues | ✅ Via offsets |\n| **Scalability** | Limited | Good | Excellent (TB/s throughput) |\n| **Complex Routing** | ❌ Basic only | ✅ Exchanges/routing keys | ✅ Topic/partition based |\n\n## Bottom Line\n\nUse **Redis Pub/Sub** for simple, fire-and-forget real-time messaging where loss is acceptable. Choose **RabbitMQ** for reliable task queues with complex routing. Choose **Kafka** for high-throughput event streaming with replay capabilities.",
+          "response_length": 1803,
+          "elapsed": 6.35,
+          "input_tokens": 580,
+          "output_tokens": 518,
+          "evaluation": {
+            "scores": {
+              "accuracy": 9,
+              "completeness": 9,
+              "conciseness": 7,
+              "no_overexplaining": 7,
+              "response_bloat": 6,
+              "actionability": 8
+            },
+            "reasons": {
+              "accuracy": "All claims correct — fire-and-forget, at-most-once, no persistence; Kafka/RabbitMQ guarantees accurately described; 'TB/s' for Kafka is a stretch but not wrong.",
+              "completeness": "Covers all three asks: mechanics, use cases, and a detailed feature-by-feature comparison across both brokers.",
+              "conciseness": "'When to Use It' table and 'Bottom Line' both restate conclusions already implicit in the limitations table — three passes at the same point.",
+              "no_overexplaining": "'Bottom Line' summarizes what the tables already show clearly; questioner at this level can read a table without a prose restatement.",
+              "response_bloat": "4 section headers, 2 tables, a code block, a bullet list, and a summary for a moderately complex question — over-structured; the use-case table is largely redundant given the comparison table.",
+              "actionability": "Decision guidance is concrete and specific: named commands, feature flags, and a clear three-way routing rule at the end."
+            },
+            "average": 7.67
+          }
+        },
+        "restrictions_only": {
+          "response": "Redis Pub/Sub allows clients to publish messages to named channels that are immediately pushed to all active subscribers without storage. Use it for real-time, fire-and-forget scenarios like live notifications where message loss is acceptable. Compared to RabbitMQ or Kafka, it lacks message persistence (dropped if no subscriber), delivery acknowledgments, replayability, dead-letter queues, and robust consumer group scaling.",
+          "response_length": 427,
+          "elapsed": 13.33,
+          "input_tokens": 217,
+          "output_tokens": 1008,
+          "evaluation": {
+            "scores": {
+              "accuracy": 9,
+              "completeness": 7,
+              "conciseness": 10,
+              "no_overexplaining": 10,
+              "response_bloat": 10,
+              "actionability": 8
+            },
+            "reasons": {
+              "accuracy": "All claims correct; 'no storage' and 'dropped if no subscriber' are accurate, minor omission that Redis Streams exist as an alternative within Redis itself",
+              "completeness": "Covers how it works, when to use it, and key limitations, but misses consumer group scaling nuance, ordering guarantees, and throughput context vs Kafka",
+              "conciseness": "Every word earns its place; no padding or repetition",
+              "no_overexplaining": "No unsolicited definitions or background; assumes reader knows what pub/sub is",
+              "response_bloat": "Prose only, no headers or bullet spam, no question restatement",
+              "actionability": "'fire-and-forget' and 'message loss is acceptable' are concrete decision criteria; limitations list is specific enough to act on"
+            },
+            "average": 9.0
+          }
+        }
+      }
+    },
+    {
+      "id": "review_code",
+      "name": "코드 리뷰",
+      "category": "non-coding",
+      "conditions": {
+        "raw": {
+          "response": "# Code Review: UserManager Class\n\n## 🔴 Critical Security Issues\n\n### 1. **SQL Injection Vulnerability** ⚠️\n```python\n# VULNERABLE\nuser = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\nself.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n```\n**Problem:** Direct string interpolation allows attackers to inject malicious SQL.\n\n**Fix:** Use parameterized queries:\n```python\nuser = self.db.query(\"SELECT * FROM users WHERE id = ?\", (user_id,))\nself.db.query(\"DELETE FROM users WHERE id = ?\", (user_id,))\n```\n\n---\n\n## 🟠 Major Design Issues\n\n### 2. **Singleton Pattern Broken**\n```python\ndef __init__(self):\n    self.users = {}  # Resets on every instantiation!\n    self.db = None\n```\n**Problem:** `__init__` runs every time, resetting the cache and DB connection despite singleton behavior.\n\n**Fix:** Initialize only once:\n```python\ndef __init__(self):\n    if hasattr(self, '_initialized'):\n        return\n    self._initialized = True\n    self.users = {}\n    self.db = None\n```\n\n### 3. **No Thread Safety**\n- Singleton creation has race conditions\n- Shared `self.users` dict accessed without locks\n- Database operations not synchronized\n\n**Fix:** Add threading locks:\n```python\nimport threading\nself._lock = threading.Lock()\n```\n\n---\n\n## 🟡 Code Quality Issues\n\n### 4. **Poor Exception Handling**\n```python\nexcept:  # Bare except clause\n    return False\n```\n**Problems:**\n- Catches all exceptions including `SystemExit`, `KeyboardInterrupt`\n- Silently swallows errors\n- No logging for debugging\n\n**Fix:**\n```python\nexcept Exception as e:\n    logger.error(f\"Delete failed: {e}\")\n    raise  # Or handle specifically\n```\n\n### 5. **Unused Type Hints**\nImports `Optional`, `List`, `Dict`, etc., but none are used.\n\n**Fix:** Add proper type annotations:\n```python\ndef get_user(self, user_id: int) -> Optional[Dict[str, Any]]: ...\ndef delete_user(self, user_id: int) -> bool: ...\n```\n\n### 6. **Missing Documentation**\n- No class/method docstrings\n- No parameter descriptions\n- No return value documentation\n\n---\n\n## 🟢 Minor Issues\n\n### 7. **Database Not Initialized**\n```python\nself.db = None  # Never assigned\n```\n**Problem:** Will fail on first query.\n\n### 8. **Inconsistent Error Handling**\n- `get_user()` prints errors, returns `None`\n- `delete_user()` returns `False` silently\n- Different behaviors make API unpredictable\n\n### 9. **No Input Validation**\n- `user_id` not validated (type, range, format)\n- Could accept strings, negative numbers, etc.\n\n### 10. **Console Logging Instead of Proper Logging**\n```python\nprint(f\"Error: {e}\")  # Should use logging module\n```\n\n---\n\n## ✅ Recommended Refactored Version\n\n```python\nimport json\nimport os\nimport sys\nimport re\nimport logging\nfrom typing import Optional, Dict, Any\nfrom contextlib import contextmanager\n\nlogger = logging.getLogger(__name__)\n\nclass UserManager:\n    _instance = None\n    _lock = threading.Lock()\n\n    def __new__(cls):\n        with cls._lock:\n            if cls._instance is None:\n                cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        if hasattr(self, '_initialized'):\n            return\n        self._initialized = True\n        self.users: Dict[int, Any] = {}\n        self.db = None\n        self._cache_lock = threading.Lock()\n\n    def connect_db(self, connection_string: str):\n        \"\"\"Initialize database connection.\"\"\"\n        self.db = create_database_connection(connection_string)\n\n    @contextmanager\n    def _db_context(self):\n        \"\"\"Context manager for database operations.\"\"\"\n        if self.db is None:\n            raise RuntimeError(\"Database not connected\")\n        try:\n            yield self.db\n        finally:\n            pass  # Handle cleanup if needed\n\n    def get_user(self, user_id: int) -> Optional[Dict[str, Any]]:\n        \"\"\"Retrieve user by ID with caching.\"\"\"\n        if not isinstance(user_id, int) or user_id <= 0:\n            logger.warning(f\"Invalid user_id: {user_id}\")\n            return None\n\n        with self._cache_lock:\n            if user_id in self.users:\n                return self.users[user_id]\n\n        try:\n            with self._db_context() as db:\n                user = db.query(\n                    \"SELECT * FROM users WHERE id = %s\", \n                    (user_id,)\n                )\n            \n            with self._cache_lock:\n                self.users[user_id] = user\n            return user\n\n        except Exception as e:\n            logger.error(f\"Failed to get user {user_id}: {e}\")\n            return None\n\n    def delete_user(self, user_id: int) -> bool:\n        \"\"\"Delete user from database and cache.\"\"\"\n        if not isinstance(user_id, int) or user_id <= 0:\n            logger.warning(f\"Invalid user_id: {user_id}\")\n            return False\n\n        try:\n            with self._db_context() as db:\n                result = db.query(\n                    \"DELETE FROM users WHERE id = %s\",\n                    (user_id,)\n                )\n            \n            with self._cache_lock:\n                self.users.pop(user_id, None)\n            \n            return result > 0\n\n        except Exception as e:\n            logger.error(f\"Failed to delete user {user_id}: {e}\")\n            return False\n```\n\n---\n\n## 📋 Summary of Issues Found\n\n| Category | Count | Severity |\n|----------|-------|----------|\n| Security | 1 | 🔴 Critical |\n| Design | 3 | 🟠 High |\n| Code Quality | 4 | 🟡 Medium |\n| Minor | 2 | 🟢 Low |\n\n**Total Issues:** 10  \n**Priority Fixes:** SQL injection, singleton initialization, exception handling",
+          "response_length": 5525,
+          "elapsed": 19.58,
+          "input_tokens": 259,
+          "output_tokens": 1891,
+          "evaluation": {
+            "scores": {
+              "accuracy": 7,
+              "completeness": 8,
+              "conciseness": 3,
+              "no_overexplaining": 2,
+              "response_bloat": 2,
+              "actionability": 8
+            },
+            "reasons": {
+              "accuracy": "All identified issues are real, but the refactored snippet uses threading without importing it, and misses that json/os/sys/re are all unused imports (only flags typing imports).",
+              "completeness": "Covers SQL injection, singleton init bug, thread safety, bare except, logging, validation, and inconsistent error handling; misses that json/os/sys/re are entirely unused imports.",
+              "conciseness": "Massively verbose — full fix code blocks for every issue plus a complete refactored class balloons the response well beyond what's needed to identify issues.",
+              "no_overexplaining": "Task said 'identify issues' but response provides a full rewrite, a contextmanager tutorial, and a connect_db method — none of which were requested.",
+              "response_bloat": "Emoji-coded severity headers, horizontal dividers between every item, a summary table, and a full refactored class are all structural padding on top of the actual content.",
+              "actionability": "Each issue has a concrete, copy-pasteable fix with before/after code, and the summary table clearly prioritizes what to address first."
+            },
+            "average": 5.0
+          }
+        },
+        "continuous": {
+          "response": "## Issues Identified\n\n### 🔴 Critical Security Issues\n\n1. **SQL Injection** - `user_id` is directly interpolated into SQL queries:\n   ```python\n   self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\n   ```\n   Use parameterized queries instead.\n\n2. **Singleton Pattern Bug** - `__init__` runs on every instantiation, resetting `self.users = {}`:\n   ```python\n   def __init__(self):  # Called every time UserManager() is invoked\n       self.users = {}  # Clears existing cache!\n   ```\n\n### 🟡 Code Quality Issues\n\n3. **Bare Exception Handler** - `except:` catches everything including `KeyboardInterrupt`, `SystemExit`\n\n4. **Uninitialized Database** - `self.db = None` but never connected; will raise `AttributeError`\n\n5. **Silent Failures** - Exceptions swallowed without logging; errors lost\n\n6. **No Input Validation** - `user_id` not validated for type or None\n\n7. **Thread-Unsafe Singleton** - Race condition possible in multi-threaded environments\n\n8. **Inconsistent Error Handling** - `get_user()` prints, `delete_user()` returns False silently\n\n### Quick Fix Example\n\n```python\ndef get_user(self, user_id):\n    if user_id in self.users:\n        return self.users[user_id]\n    \n    try:\n        user = self.db.execute(\"SELECT * FROM users WHERE id = ?\", (user_id,))\n        self.users[user_id] = user\n        return user\n    except Exception as e:\n        logger.error(f\"User fetch failed: {e}\")\n        return None\n```",
+          "response_length": 1429,
+          "elapsed": 11.15,
+          "input_tokens": 878,
+          "output_tokens": 690,
+          "evaluation": {
+            "scores": {
+              "accuracy": 9,
+              "completeness": 9,
+              "conciseness": 7,
+              "no_overexplaining": 8,
+              "response_bloat": 6,
+              "actionability": 8
+            },
+            "reasons": {
+              "accuracy": "All identified issues are correct; singleton __init__ reset issue is accurately called out",
+              "completeness": "Covers SQL injection, singleton bug, bare except, uninitialized db, silent failures, input validation, thread safety, inconsistent error handling",
+              "conciseness": "Issue descriptions are tight but the quick fix example adds length without covering all issues",
+              "no_overexplaining": "Mostly focused; 'Use parameterized queries instead' is appropriate, not over-explained",
+              "response_bloat": "Emoji severity markers and section headers add visual noise; 'Quick Fix Example' section wasn't asked for",
+              "actionability": "Named fixes are specific (parameterized queries, logger.error); quick fix example is concrete but only addresses one of eight issues"
+            },
+            "average": 7.83
+          }
+        },
+        "fragmented": {
+          "response": "## Critical Issues\n\n### 1. SQL Injection Vulnerability (Security)\n```python\n# VULNERABLE - User input directly interpolated into SQL\nuser = self.db.query(f\"SELECT * FROM users WHERE id = {user_id}\")\nself.db.query(f\"DELETE FROM users WHERE id = {user_id}\")\n```\n**Fix:** Use parameterized queries instead of string formatting.\n\n### 2. Singleton Pattern Broken\n```python\ndef __init__(self):\n    self.users = {}  # Resets on every instantiation!\n```\n`__init__` runs every time `UserManager()` is called, resetting the cache and breaking the singleton.\n\n**Fix:** Only initialize in `__new__` or guard with a flag.\n\n### 3. Bare Exception Clause\n```python\nexcept:  # Catches SystemExit, KeyboardInterrupt, etc.\n    return False\n```\n**Fix:** Catch specific exceptions like `Exception`.\n\n### 4. Uninitialized Database\n```python\nself.db = None  # Never connected\n```\nWill fail on first query.\n\n### 5. Missing Thread Safety\nThe singleton check-and-set has a race condition in multi-threaded environments.\n\n### 6. Silent Error Handling\nErrors are swallowed (printed or returned as None/False), making debugging difficult.\n\n---\n\n## Recommended Fixes\n\n```python\nclass UserManager:\n    _instance = None\n    _initialized = False\n\n    def __new__(cls):\n        if cls._instance is None:\n            cls._instance = super().__new__(cls)\n        return cls._instance\n\n    def __init__(self):\n        if self._initialized:\n            return\n        self.users = {}\n        self.db = connect_to_database()  # Proper initialization\n        self._initialized = True\n\n    def get_user(self, user_id: int) -> Optional[Dict]:\n        if user_id in self.users:\n            return self.users[user_id]\n        try:\n            user = self.db.query(\"SELECT * FROM users WHERE id = ?\", (user_id,))\n            self.users[user_id] = user\n            return user\n        except DatabaseError as e:\n            raise  # Propagate or log properly\n\n    def delete_user(self, user_id: int) -> bool:\n        try:\n            self.db.query(\"DELETE FROM users WHERE id = ?\", (user_id,))\n            self.users.pop(user_id, None)\n            return True\n        except DatabaseError:\n            raise\n```",
+          "response_length": 2165,
+          "elapsed": 9.38,
+          "input_tokens": 801,
+          "output_tokens": 861,
+          "evaluation": {
+            "scores": {
+              "accuracy": 9,
+              "completeness": 7,
+              "conciseness": 7,
+              "no_overexplaining": 7,
+              "response_bloat": 5,
+              "actionability": 9
+            },
+            "reasons": {
+              "accuracy": "All six issues correctly identified; parameterized query fix uses `?` placeholder which isn't universal (PostgreSQL uses `%s`) but not wrong in context",
+              "completeness": "Misses the obvious unused imports (json, os, sys, re) that are imported but never referenced in the class",
+              "conciseness": "Each issue is explained tightly; the full rewrite block is longer than needed but not padded with filler prose",
+              "no_overexplaining": "Stays on task; the full corrected class goes slightly beyond 'identify issues' but adds value rather than lecturing",
+              "response_bloat": "Triple-nested headers (##/###) for each issue, an hr divider, and a full rewrite section exceed what 'identify all issues' calls for",
+              "actionability": "Every issue pairs a specific diagnosis with concrete code fix; `self.users.pop(user_id, None)` and `_initialized` guard are immediately applicable"
+            },
+            "average": 7.33
+          }
+        },
+        "restrictions_only": {
+          "response": "1.  **SQL Injection**: `user_id` is interpolated directly into SQL strings in `get_user` and `delete_user`; use parameterized queries instead.\n2.  **Singleton State Reset**: `__init__` executes on every instantiation, resetting `self.users` to `{}` and clearing the cache despite the singleton pattern.\n3.  **Uninitialized Dependency**: `self.db` defaults to `None`, causing `AttributeError` if methods are called before database initialization.\n4.  **Unsafe Exception Handling**: `delete_user` uses a bare `except:` clause (catching `SystemExit`, etc.), and `get_user` swallows errors without proper logging.\n5.  **Unused Imports**: `json`, `os`, `sys`, `re`, and `typing` are imported but never utilized.",
+          "response_length": 706,
+          "elapsed": 18.64,
+          "input_tokens": 438,
+          "output_tokens": 1308,
+          "evaluation": {
+            "scores": {
+              "accuracy": 9,
+              "completeness": 7,
+              "conciseness": 9,
+              "no_overexplaining": 9,
+              "response_bloat": 9,
+              "actionability": 8
+            },
+            "reasons": {
+              "accuracy": "All 5 identified issues are factually correct; SQL injection, singleton init bug, uninitialized db, bare except, and unused imports are real problems.",
+              "completeness": "Misses thread-safety issue with the singleton (no lock), and cache invalidation inconsistency (get_user caches None on db failure).",
+              "conciseness": "Each point is stated once, cleanly, with no repetition or padding.",
+              "no_overexplaining": "Fixes are named but not spelled out in full; stays at the identification level the question asked for.",
+              "response_bloat": "Pure numbered list, no headers, no preamble, no summary — lean structure appropriate to the task.",
+              "actionability": "Each issue names the specific fix (parameterized queries, guard __init__ with hasattr, etc.) making remediation straightforward."
+            },
+            "average": 8.5
+          }
+        }
+      }
+    },
+    {
+      "id": "architecture_decision",
+      "name": "아키텍처 의사결정",
+      "category": "non-coding",
+      "conditions": {
+        "raw": {
+          "response": "This is a classic architectural decision point. Based on the metrics provided (**50k LOC**, **10 devs**, **500 RPS**), my short answer is: **Do not extract this into a separate microservice yet.**\n\nAt this scale, the operational complexity introduced by distributed systems will likely outweigh the benefits. However, there are specific scenarios where extraction is justified. Below is a detailed breakdown of considerations, risks, and a strategic recommendation.\n\n---\n\n### 1. Key Considerations\n\nIf you decide to proceed, these are the technical and organizational hurdles you must address:\n\n#### A. Data Consistency & Transactions\n*   **The Trap:** In a monolith, a user order and a payment record can live in the same database transaction (ACID). In a microservice architecture, you lose this.\n*   **The Challenge:** You must implement patterns like **Sagas** (choreography or orchestration) to handle distributed transactions. If the payment succeeds but the order creation fails, how do you roll back?\n*   **Database Strategy:** Each service should ideally own its data. You cannot share tables between the main app and the payment service.\n\n#### B. Communication Patterns\n*   **Synchronous (REST/gRPC):** Good for immediate feedback (\"Did the card work?\"). Adds latency and tight coupling. If the payment service is down, your checkout flow breaks.\n*   **Asynchronous (Message Queue/Kafka):** Better for decoupling. The main app sends an \"Order Created\" event; the payment service processes it later. This introduces **eventual consistency**. Users might see \"Processing\" status longer than expected.\n\n#### C. Security & Compliance (PCI-DSS)\n*   **Scope Reduction:** The primary valid reason to split payments is to reduce the PCI-DSS audit scope. By isolating the service, you can restrict access strictly to that server/container.\n*   **Secrets Management:** You now need secure secret rotation for two distinct environments/services.\n*   **Network Security:** You need strict internal firewalls/VPC rules. The main app should never store raw credit card numbers; it should rely on tokens from the payment service (or Stripe/Braintree directly).\n\n#### D. Observability & Debugging\n*   **Tracing:** A single request now spans multiple services. You need distributed tracing (e.g., OpenTelemetry, Jaeger) to debug why a payment failed.\n*   **Logging:** Logs are no longer in one file. You need centralized logging (ELK, Datadog, CloudWatch).\n\n#### E. Team Structure (Conway’s Law)\n*   **Ownership:** Do you have a dedicated team of 2-3 people who will own the payment service full-time? If the 10 developers still touch both codebases, you haven't gained agility; you've just increased merge conflicts and deployment coordination.\n\n---\n\n### 2. Risks\n\n| Risk | Impact | Mitigation |\n| :--- | :--- | :--- |\n| **Operational Overhead** | High. Managing 2+ deployments, health checks, and infra increases toil. | Use Kubernetes or managed PaaS (Render/Fly.io/AWS ECS) to abstract infra. |\n| **Latency** | Medium. Network hops add 10-50ms per call. At 500 RPS, this compounds. | Keep services on the same region/availability zone. Use gRPC over HTTP. |\n| **Partial Failures** | High. The main app works, but payments fail silently or inconsistently. | Implement Circuit Breakers (e.g., Resilience4j, PyHopper) and robust retry logic. |\n| **Data Duplication** | High. You may end up duplicating user/order data to avoid cross-service DB queries. | Define clear read-models vs. write-models. Accept some redundancy. |\n| **Versioning** | Medium. Changing the API contract between services becomes a breaking change risk. | Strict API versioning and backward compatibility policies. |\n\n---\n\n### 3. Strategic Recommendation\n\n#### The Verdict: Stick with a Modular Monolith\nFor a 50k LOC codebase with 10 developers, **a Microservice architecture is premature optimization.**\n\n**Why?**\n1.  **Scale:** 500 RPS is easily handled by a single Django instance behind a load balancer (Nginx/Gunicorn/Uvicorn). You do not need horizontal scaling via microservices yet.\n2.  **Code Size:** 50k LOC is small. A single developer could understand the whole payment flow today. Splitting it fragments knowledge.\n3.  **Cost:** You will pay double for infrastructure, monitoring, and engineering time to manage the boundary between services.\n\n#### The Recommended Path: Modular Monolith\nInstead of splitting the *deployment*, split the *code structure*.\n\n1.  **Strict Domain Boundaries:** Create a `payments` directory in your Django project. Treat it as a bounded context. No other apps should import models or logic directly from `payments`.\n2.  **Internal API:** If you want to simulate the future separation, create an internal API layer within the monolith. Other modules interact with payments via this interface, not direct model access.\n3.  **Process Separation (Optional):** If you need to isolate the heavy lifting (e.g., calling external gateways), run the payment logic in a **separate Celery worker queue**. This isolates resource usage without introducing network complexity.\n4.  **PCI Scope:** If PCI compliance is the driver, you can achieve scope reduction by ensuring the payment module runs in a restricted environment (e.g., a specific container or VM) even if it shares the repo, or by using tokenization providers (Stripe Elements) so sensitive data never touches your DB.\n\n#### When Should You Actually Split?\nOnly consider extracting the service when you hit one of these triggers:\n*   **Compliance Mandate:** Legal/Security requires the payment code to physically reside on a different subnet/network segment than the rest of the app.\n*   **Tech Stack Mismatch:** You need to rewrite the payment logic in Go or Rust for performance/security reasons while keeping the rest in Python.\n*   **Team Scaling:** You grow to 30+ developers, and the payment team needs to deploy independently of the core product team without coordinating release windows.\n*   **Scaling Disparity:** Payment traffic spikes 10x during Black Friday, requiring independent auto-scaling that would waste resources for the rest of the app.\n\n### 4. Implementation Roadmap (If you insist on splitting)\n\nIf business requirements force the split despite the advice above, follow the **Strangler Fig Pattern**:\n\n1.  **Phase 1: Extraction:** Move payment code to a new repo/service but keep the database shared temporarily (anti-pattern, but easier migration).\n2.  **Phase 2: Routing:** Update the main app to call the new service via API instead of local functions.\n3.  **Phase 3: Decoupling:** Migrate the database schema to the new service (Database-per-service).\n4.  **Phase 4: Cleanup:** Remove old payment code from the monolith once the new service is stable.\n\n### Summary\n**Don't build a microservice to solve a problem you don't have.**\nFocus on making the current monolith cleaner, better tested, and more modular. If you need to isolate payment logic for security, use **tokenization** and **isolated worker queues**, not a separate networked service. Save the distributed architecture complexity for when you have 500k LOC and 50 developers.",
+          "response_length": 7122,
+          "elapsed": 31.85,
+          "input_tokens": 62,
+          "output_tokens": 2805,
+          "evaluation": {
+            "error": "Expecting ',' delimiter: line 1 column 1426 (char 1425)",
+            "raw": "```json\n{\"accuracy\":{\"score\":6,\"reason\":\"'PyHopper' cited as a circuit breaker library does not exist; Resilience4j is Java, not Python — in a Django context these are misleading/wrong recommendations; rest of content is solid.\"},\"completeness\":{\"score\":9,\"reason\":\"Covers all three requested areas (considerations, risks, recommendation) with strong depth including PCI-DSS, Conway's Law, communication patterns, and concrete triggers for splitting.\"},\"conciseness\":{\"score\":5,\"reason\":\"~1500 words "
+          }
+        },
+        "continuous": {
+          "response": "# Payment Service Extraction Analysis\n\n## Key Considerations\n\n| Area | Concern |\n|------|---------|\n| **Data Consistency** | Payments require ACID guarantees; distributed transactions are hard |\n| **Communication** | Sync (HTTP/gRPC) adds latency; async (queues) complicates error handling |\n| **Transaction Boundaries** | Order creation + payment must stay consistent across services |\n| **Security** | PCI compliance scope changes; secrets management across services |\n| **Observability** | Need distributed tracing (OpenTelemetry) for debugging |\n| **Deployment** | Coordinated rollouts; rollback complexity increases |\n\n## Primary Risks\n\n1. **Distributed transaction failures** — No native two-phase commit in most systems\n2. **Increased latency** — Network calls add 10-100ms per request\n3. **Debugging complexity** — Stack traces span multiple services\n4. **Operational overhead** — More infra to monitor, deploy, maintain\n\n## Recommendation\n\n**Proceed with caution.** At 50k LOC and 10 developers, you're at a reasonable inflection point, but payment processing is among the hardest domains to extract.\n\n### If you proceed:\n\n1. **Start with a bounded context** — Extract only payment *processing*, keep order/payment state in monolith initially\n2. **Use sagas pattern** — Compensating transactions instead of distributed ACID\n3. **Implement idempotency keys** — Critical for retry safety\n4. **Add circuit breakers** — Prevent cascade failures\n5. **Invest in observability first** — Tracing before you cut over\n\n### Alternative approach:\n\nConsider extracting as an **internal library/service hybrid** first — shared codebase, separate deployment, same database. This gives you separation without distributed transaction complexity. Validate the value before full extraction.\n\n**Bottom line:** Only extract if you have clear pain points (e.g., payment team blocked by monolith deploys). Otherwise, the operational cost may outweigh benefits at your current scale.",
+          "response_length": 1968,
+          "elapsed": 9.71,
+          "input_tokens": 681,
+          "output_tokens": 707,
+          "evaluation": {
+            "scores": {
+              "accuracy": 9,
+              "completeness": 8,
+              "conciseness": 7,
+              "no_overexplaining": 7,
+              "response_bloat": 6,
+              "actionability": 8
+            },
+            "reasons": {
+              "accuracy": "All claims are technically sound; saga pattern, idempotency keys, circuit breakers, and PCI scope changes are correct and relevant.",
+              "completeness": "Covers considerations, risks, and recommendation as asked; misses team skill/maturity and API versioning/contract management concerns.",
+              "conciseness": "Table and lists are dense, but the 'Bottom line' section partially restates the recommendation already made above it.",
+              "no_overexplaining": "'Implement idempotency keys — Critical for retry safety' defines something a team doing payment extraction already knows; minor over-explanation.",
+              "response_bloat": "Five distinct header sections plus a table plus two sub-sections is heavy structure for a mid-length response; 'If you proceed' and 'Alternative approach' sub-headers add nesting without adding clarity.",
+              "actionability": "Concrete patterns named (sagas, circuit breakers, OpenTelemetry), specific sequencing advice (observability before cutover), and a clear conditional recommendation tied to actual pain points."
+            },
+            "average": 7.5
+          }
+        },
+        "fragmented": {
+          "response": "## Key Considerations\n\n**Data Consistency**: Payments require ACID guarantees. Moving to microservices means handling eventual consistency or two-phase commits.\n\n**Communication**: Choose between synchronous (HTTP/gRPC) for real-time responses vs asynchronous (message queue) for resilience.\n\n**Security**: PCI-DSS compliance becomes more complex across service boundaries. Tokenization and vaulting strategies matter.\n\n**Observability**: Need distributed tracing, centralized logging, and alerting across services.\n\n**Deployment**: CI/CD pipelines, versioning, and rollback strategies multiply in complexity.\n\n## Primary Risks\n\n| Risk | Impact | Mitigation |\n|------|--------|------------|\n| Lost/duplicate payments | Critical | Idempotency keys + idempotent handlers |\n| Network failures | High | Retries with exponential backoff + dead letter queues |\n| Debugging complexity | Medium | Correlation IDs, structured logging |\n| Operational overhead | Medium | Start with shared infrastructure |\n| Transaction rollbacks | High | Outbox pattern or saga orchestration |\n\n## Recommendation\n\n**Proceed, but start conservatively:**\n\n1. **Extract incrementally**: Keep the Django app as the \"source of truth\" initially. New service handles only payment execution; Django manages state.\n\n2. **Use an event-driven approach**: Django publishes `payment_initiated` events → payment service processes → publishes `payment_completed/failed`. Avoid tight coupling.\n\n3. **Implement idempotency first**: Every payment request needs a unique idempotency key stored with the result.\n\n4. **Start with one team**: Don't split ownership immediately. Same team owns both services until stable.\n\n5. **Add observability before launch**: OpenTelemetry/tracing from day one.\n\n**At your scale (500 RPS)**, the operational cost is manageable if you extract cleanly. The main risk isn't technical—it's organizational. Ensure the team has bandwidth to maintain two deployment pipelines and handle incident response across services.\n\n**Alternative**: If payment logic is <5% of the codebase, consider keeping it monolithic with better isolation (separate app, database schema). Only extract if there are clear business drivers (different scaling needs, compliance requirements, or team separation).",
+          "response_length": 2268,
+          "elapsed": 9.6,
+          "input_tokens": 604,
+          "output_tokens": 741,
+          "evaluation": {
+            "scores": {
+              "accuracy": 9,
+              "completeness": 9,
+              "conciseness": 8,
+              "no_overexplaining": 8,
+              "response_bloat": 7,
+              "actionability": 9
+            },
+            "reasons": {
+              "accuracy": "All technical claims are correct: idempotency keys, outbox pattern, saga orchestration, PCI-DSS complexity, two-phase commits — no misleading statements",
+              "completeness": "Covers all three asked areas (considerations, risks, recommendation) with appropriate depth including the 'keep monolithic' alternative",
+              "conciseness": "Dense and mostly tight; the risk table is efficient, though the final two paragraphs have minor redundancy with earlier points",
+              "no_overexplaining": "Stays professional-level throughout; 'exponential backoff' and 'correlation IDs' are mentioned without over-defining them, though 'Observability' section states the obvious slightly",
+              "response_bloat": "Five section headers plus a nested table plus bold sub-items is moderately heavy structure for the content volume; the risk table adds value but headers could be trimmed",
+              "actionability": "Concrete sequencing (idempotency first, one team owns both, observability before launch) and the 5% heuristic for the alternative path are directly usable decision criteria"
+            },
+            "average": 8.33
+          }
+        },
+        "restrictions_only": {
+          "response": "**Recommendation:** Do not extract the payment module yet. At 50k LOC and 500 RPS, the monolith is efficient; splitting adds distributed complexity unless mandated by PCI-DSS compliance.\n\n**Considerations:**\n*   **Data Consistency:** Replacing ACID transactions with Sagas or eventual consistency.\n*   **Failure Modes:** Handling network timeouts, retries, and ensuring idempotency.\n*   **Security:** Reducing PCI scope through network segmentation.\n*   **Observability:** Correlating logs and traces across independent services.\n\n**Risks:**\n*   **Operational Cost:** Higher infrastructure and maintenance burden.\n*   **Debugging Difficulty:** Tracing issues across service boundaries is harder.\n*   **Data Integrity:** Increased risk of inconsistent states during partial failures.\n*   **Latency:** Network hops add overhead to request/response cycles.\n\n**Action Plan:**\n1.  Enforce strict internal boundaries using separate Django apps.\n2.  Isolate payment dependencies to minimize coupling.\n3.  Extract only if compliance requires physical separation of cardholder data.",
+          "response_length": 1073,
+          "elapsed": 22.73,
+          "input_tokens": 241,
+          "output_tokens": 2155,
+          "evaluation": {
+            "scores": {
+              "accuracy": 8,
+              "completeness": 6,
+              "conciseness": 8,
+              "no_overexplaining": 8,
+              "response_bloat": 6,
+              "actionability": 5
+            },
+            "reasons": {
+              "accuracy": "Technically sound; PCI-DSS framing is valid but stating 500 RPS makes monolith 'efficient' is an oversimplification—scale isn't the only driver for extraction.",
+              "completeness": "Covers risks and data consistency but omits team autonomy, deployment independence, API contract design, and migration strategy as key considerations.",
+              "conciseness": "Tight bullet points with minimal fluff; each item carries weight without redundant prose.",
+              "no_overexplaining": "Doesn't define basic concepts; assumes reader competence. Saga mention is appropriately brief.",
+              "response_bloat": "Three separate header sections (Considerations/Risks/Action Plan) partially overlap—risks and considerations could be unified; the structure adds visual bulk without clarity gain.",
+              "actionability": "Action plan is vague ('enforce strict internal boundaries', 'isolate dependencies') without concrete steps like strangler fig pattern, feature flags, or dual-write migration phases."
+            },
+            "average": 6.83
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "raw": {
+      "avg_score": 6.7,
+      "avg_length": 3687,
+      "avg_time": 18.1,
+      "avg_input_tokens": 102,
+      "avg_output_tokens": 1676
+    },
+    "continuous": {
+      "avg_score": 8.33,
+      "avg_length": 1285,
+      "avg_time": 6.6,
+      "avg_input_tokens": 714,
+      "avg_output_tokens": 476
+    },
+    "fragmented": {
+      "avg_score": 8.5,
+      "avg_length": 1430,
+      "avg_time": 6.3,
+      "avg_input_tokens": 637,
+      "avg_output_tokens": 527
+    },
+    "restrictions_only": {
+      "avg_score": 8.97,
+      "avg_length": 628,
+      "avg_time": 25.3,
+      "avg_input_tokens": 274,
+      "avg_output_tokens": 2178
+    }
+  }
+}

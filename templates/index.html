@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>harness-bench</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3247;
+    --accent: #6c63ff;
+    --accent2: #4ecca3;
+    --text: #e2e4f0;
+    --muted: #8b8fa8;
+    --danger: #ff6b6b;
+    --warn: #ffd166;
+    --success: #4ecca3;
+    --code-bg: #0d1117;
+    --radius: 8px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    grid-template-rows: 56px 1fr;
+    grid-template-areas: "header header" "sidebar main";
+  }
+
+  /* ── Header ── */
+  header {
+    grid-area: header;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+  header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  header h1 span { color: var(--accent); }
+  .badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 20px;
+    background: var(--accent); color: #fff; font-weight: 600;
+  }
+  .badge.muted { background: var(--surface2); color: var(--muted); }
+  header .spacer { flex: 1; }
+  #status-badge {
+    font-size: 12px; padding: 4px 12px; border-radius: 20px;
+    background: var(--surface2); color: var(--muted);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  #status-badge.running { background: rgba(108,99,255,0.15); color: var(--accent); border-color: var(--accent); }
+  #status-badge.done    { background: rgba(78,204,163,0.15); color: var(--success); border-color: var(--success); }
+
+  /* ── Sidebar ── */
+  aside {
+    grid-area: sidebar;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .section-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  /* Checkboxes */
+  .check-list { display: flex; flex-direction: column; gap: 6px; }
+  .check-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 10px; border-radius: var(--radius);
+    cursor: pointer; border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .check-item:hover { background: var(--surface2); }
+  .check-item.selected { background: rgba(108,99,255,0.08); border-color: rgba(108,99,255,0.3); }
+  .check-item input[type="checkbox"] { display: none; }
+  .check-box {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 1.5px solid var(--border); background: var(--code-bg);
+    flex-shrink: 0; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .check-item.selected .check-box {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .check-item.selected .check-box::after {
+    content: '✓'; font-size: 11px; color: #fff; font-weight: 700;
+  }
+  .check-label { flex: 1; min-width: 0; }
+  .check-label strong { display: block; font-size: 13px; font-weight: 600; }
+  .check-label small { color: var(--muted); font-size: 11px; line-height: 1.4; }
+  .tok-badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 10px;
+    background: var(--surface2); color: var(--muted); white-space: nowrap;
+  }
+
+  /* Select & input */
+  select, input[type="number"], input[type="text"] {
+    width: 100%; padding: 8px 10px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: var(--radius);
+    font-size: 13px; font-family: var(--font);
+    appearance: none;
+  }
+  select:focus, input:focus { outline: none; border-color: var(--accent); }
+
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+
+  .field { margin-bottom: 12px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  /* Range slider */
+  .range-wrap { display: flex; align-items: center; gap: 8px; }
+  input[type="range"] { flex: 1; accent-color: var(--accent); }
+  .range-val {
+    font-size: 13px; font-family: var(--mono); color: var(--accent);
+    min-width: 30px; text-align: right;
+  }
+
+  /* Buttons */
+  .btn {
+    width: 100%; padding: 10px; border-radius: var(--radius);
+    font-size: 14px; font-weight: 700; cursor: pointer; border: none;
+    transition: all 0.15s; font-family: var(--font);
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #7c74ff; }
+  .btn-primary:disabled { background: var(--surface2); color: var(--muted); cursor: not-allowed; }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: rgba(255,107,107,0.1); }
+  .btn-danger:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* ── Main ── */
+  main {
+    grid-area: main;
+    display: grid;
+    grid-template-rows: 1fr 280px;
+    overflow: hidden;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+    background: var(--surface); padding: 0 24px;
+  }
+  .tab-btn {
+    padding: 14px 18px; font-size: 13px; font-weight: 600;
+    color: var(--muted); cursor: pointer; border: none; background: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all 0.15s; font-family: var(--font);
+  }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+
+  .tab-content { display: none; flex: 1; overflow-y: auto; padding: 24px; }
+  .tab-content.active { display: block; }
+
+  /* Log */
+  #log-container {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--code-bg); padding: 16px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+    max-height: 100%; overflow-y: auto;
+    min-height: 200px;
+  }
+  .log-line { display: flex; gap: 12px; }
+  .log-ts { color: var(--muted); flex-shrink: 0; }
+  .log-msg { flex: 1; }
+  .log-task { color: var(--accent2); font-weight: 700; }
+  .log-cond { color: var(--accent); }
+  .log-score { color: var(--success); font-weight: 700; }
+  .log-err { color: var(--danger); }
+  .log-done { color: var(--success); font-weight: 700; }
+  .log-start { color: var(--warn); }
+
+  /* Results table */
+  .results-panel { padding: 0 24px 24px; overflow-y: auto; }
+  .results-panel h2 { font-size: 14px; font-weight: 700; margin-bottom: 16px; padding-top: 20px; }
+
+  .result-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+    cursor: pointer; transition: border-color 0.15s;
+  }
+  .result-card:hover { border-color: var(--accent); }
+  .result-meta {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .result-ts { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+  .result-model { font-size: 12px; font-weight: 600; }
+  .score-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .score-chip {
+    font-size: 12px; padding: 3px 10px; border-radius: 20px;
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .score-chip .val { color: var(--accent2); font-weight: 700; font-family: var(--mono); }
+
+  /* Detail modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; width: 90vw; max-width: 900px;
+    max-height: 85vh; overflow-y: auto; padding: 28px;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .modal-header h2 { font-size: 16px; font-weight: 700; }
+  .modal-close {
+    background: none; border: none; color: var(--muted);
+    font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 4px;
+  }
+  .modal-close:hover { color: var(--text); background: var(--surface2); }
+
+  .task-block { margin-bottom: 24px; }
+  .task-block h3 {
+    font-size: 13px; font-weight: 700; color: var(--accent2);
+    margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cond-block { margin-bottom: 14px; }
+  .cond-name { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .scores-grid {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+  }
+  .s-chip {
+    font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .s-chip span { color: var(--accent2); font-weight: 700; }
+  .response-box {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px;
+    font-family: var(--mono); font-size: 12px; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-word;
+    max-height: 300px; overflow-y: auto; color: var(--text);
+  }
+
+  /* Bottom panel resize handle */
+  .resize-handle {
+    height: 4px; background: var(--border); cursor: row-resize;
+    transition: background 0.15s;
+  }
+  .resize-handle:hover { background: var(--accent); }
+
+  /* Summary bar */
+  #summary-bar {
+    display: none; background: var(--surface); border-top: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  #summary-bar.visible { display: flex; }
+  .sum-label { font-size: 11px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.06em; font-weight: 700; }
+  .sum-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sum-chip {
+    font-size: 12px; padding: 4px 12px; border-radius: 20px;
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .sum-chip.top { border-color: var(--success); background: rgba(78,204,163,0.1); }
+  .sum-chip b { color: var(--accent2); font-family: var(--mono); }
+
+  /* select all/none */
+  .sel-actions {
+    display: flex; gap: 6px; margin-bottom: 8px;
+  }
+  .sel-btn {
+    font-size: 11px; padding: 3px 8px; border-radius: 4px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); cursor: pointer;
+  }
+  .sel-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <h1>harness<span>-bench</span></h1>
+  <span class="badge">Claude Code Harness Experiment</span>
+  <div class="spacer"></div>
+  <span id="status-badge">대기 중</span>
+</header>
+
+<!-- ── Sidebar ── -->
+<aside>
+
+  <!-- 조건 -->
+  <div>
+    <div class="section-title">실험 조건 (하니스)</div>
+    <div class="sel-actions">
+      <button class="sel-btn" onclick="selectAll('cond')">전체 선택</button>
+      <button class="sel-btn" onclick="selectNone('cond')">전체 해제</button>
+    </div>
+    <div class="check-list" id="conditions-list"></div>
+  </div>
+
+  <!-- 과제 -->
+  <div>
+    <div class="section-title">과제</div>
+    <div class="sel-actions">
+      <button class="sel-btn" onclick="selectAll('task')">전체 선택</button>
+      <button class="sel-btn" onclick="selectNone('task')">전체 해제</button>
+      <button class="sel-btn" onclick="selectCategory('coding')">코딩만</button>
+      <button class="sel-btn" onclick="selectCategory('non-coding')">비코딩만</button>
+    </div>
+    <div class="check-list" id="tasks-list"></div>
+  </div>
+
+  <!-- 모델 설정 -->
+  <div>
+    <div class="section-title">모델 설정</div>
+    <div class="field">
+      <label>프로바이더</label>
+      <select id="provider" onchange="onProviderChange()"></select>
+    </div>
+    <div class="field">
+      <label>모델</label>
+      <input type="text" id="model" placeholder="기본값 사용">
+    </div>
+    <div class="field">
+      <label>Temperature</label>
+      <div class="range-wrap">
+        <input type="range" id="temperature" min="0" max="1" step="0.05" value="0.3"
+               oninput="document.getElementById('temp-val').textContent=this.value">
+        <span class="range-val" id="temp-val">0.3</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Judge 설정 -->
+  <div>
+    <div class="section-title">Judge 설정</div>
+    <div class="field">
+      <label>Judge 모델</label>
+      <input type="text" id="judge-model" value="claude-opus-4-6">
+    </div>
+    <div class="check-item" id="no-judge-item" onclick="toggleNoJudge()">
+      <div class="check-box" id="no-judge-box"></div>
+      <div class="check-label">
+        <strong>Judge 없이 실행</strong>
+        <small>응답만 수집, 평가 건너뜀</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- 실행 버튼 -->
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+    <button class="btn btn-primary" id="run-btn" onclick="startRun()">▶ 실험 실행</button>
+    <button class="btn btn-danger" id="stop-btn" onclick="stopRun()" disabled>⏹ 중단</button>
+  </div>
+
+</aside>
+
+<!-- ── Main ── -->
+<main>
+  <div style="display:flex; flex-direction:column; overflow:hidden;">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('log')">실행 로그</button>
+      <button class="tab-btn" onclick="switchTab('results')">결과 히스토리</button>
+    </div>
+
+    <!-- 로그 탭 -->
+    <div class="tab-content active" id="tab-log" style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+      <div id="log-container">
+        <div class="log-line">
+          <span class="log-ts">--:--:--</span>
+          <span class="log-msg" style="color:var(--muted)">왼쪽에서 설정 후 실험 실행을 누르세요.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 결과 탭 -->
+    <div class="tab-content" id="tab-results">
+      <div class="results-panel">
+        <h2>저장된 실험 결과</h2>
+        <div id="results-list"><span style="color:var(--muted)">불러오는 중...</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 요약 바 -->
+  <div id="summary-bar">
+    <span class="sum-label">종합 점수</span>
+    <div class="sum-chips" id="sum-chips"></div>
+  </div>
+</main>
+
+<!-- 상세 모달 -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">결과 상세</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+let CONFIG = {};
+let noJudge = false;
+let running = false;
+let eventSource = null;
+
+// ── 초기화 ──────────────────────────────────────────────────────────────────
+
+async function init() {
+  const res = await fetch('/api/config');
+  CONFIG = await res.json();
+  renderConditions();
+  renderTasks();
+  renderProviders();
+  loadResults();
+}
+
+function renderConditions() {
+  const el = document.getElementById('conditions-list');
+  el.innerHTML = CONFIG.conditions.map(c => `
+    <label class="check-item selected" data-type="cond" data-key="${c.key}" onclick="toggleCheck(this)">
+      <input type="checkbox" checked>
+      <div class="check-box">✓</div>
+      <div class="check-label">
+        <strong>${c.name.replace(/ \(.*\)/, '')}</strong>
+        <small>${c.description}</small>
+      </div>
+      <span class="tok-badge">~${c.tok_approx}w</span>
+    </label>
+  `).join('');
+  // fix: remove the nested label hack, use div
+  el.querySelectorAll('label.check-item').forEach(el => {
+    el.addEventListener('click', () => toggleCheck(el));
+  });
+}
+
+function renderTasks() {
+  const el = document.getElementById('tasks-list');
+  el.innerHTML = CONFIG.tasks.map(t => `
+    <div class="check-item selected" data-type="task" data-key="${t.id}" data-cat="${t.category}" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-label">
+        <strong>${t.name}</strong>
+        <small>${t.category}</small>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderProviders() {
+  const sel = document.getElementById('provider');
+  sel.innerHTML = CONFIG.providers.map(p =>
+    `<option value="${p.key}">${p.key} — ${p.default_model}</option>`
+  ).join('');
+  onProviderChange();
+}
+
+function onProviderChange() {
+  const key = document.getElementById('provider').value;
+  const p = CONFIG.providers.find(x => x.key === key);
+  if (p) document.getElementById('model').placeholder = p.default_model;
+}
+
+// ── 체크박스 ─────────────────────────────────────────────────────────────────
+
+function toggleCheck(el) {
+  el.classList.toggle('selected');
+  const box = el.querySelector('.check-box');
+  box.textContent = el.classList.contains('selected') ? '✓' : '';
+}
+
+function selectAll(type) {
+  document.querySelectorAll(`[data-type="${type}"]`).forEach(el => {
+    el.classList.add('selected');
+    el.querySelector('.check-box').textContent = '✓';
+  });
+}
+
+function selectNone(type) {
+  document.querySelectorAll(`[data-type="${type}"]`).forEach(el => {
+    el.classList.remove('selected');
+    el.querySelector('.check-box').textContent = '';
+  });
+}
+
+function selectCategory(cat) {
+  document.querySelectorAll('[data-type="task"]').forEach(el => {
+    const match = el.dataset.cat === cat;
+    el.classList.toggle('selected', match);
+    el.querySelector('.check-box').textContent = match ? '✓' : '';
+  });
+}
+
+function toggleNoJudge() {
+  noJudge = !noJudge;
+  const item = document.getElementById('no-judge-item');
+  const box = document.getElementById('no-judge-box');
+  item.classList.toggle('selected', noJudge);
+  box.textContent = noJudge ? '✓' : '';
+}
+
+function getSelected(type) {
+  return [...document.querySelectorAll(`[data-type="${type}"].selected`)]
+    .map(el => el.dataset.key);
+}
+
+// ── 실험 실행 ─────────────────────────────────────────────────────────────────
+
+async function startRun() {
+  const conditions = getSelected('cond');
+  const tasks = getSelected('task');
+  if (!conditions.length) { alert('조건을 하나 이상 선택하세요.'); return; }
+  if (!tasks.length) { alert('과제를 하나 이상 선택하세요.'); return; }
+
+  const provider = document.getElementById('provider').value;
+  const model = document.getElementById('model').value.trim() || null;
+  const judgeModel = document.getElementById('judge-model').value.trim();
+  const temperature = parseFloat(document.getElementById('temperature').value);
+
+  clearLog();
+  setRunning(true);
+  switchTab('log');
+
+  // SSE 스트림 연결
+  if (eventSource) eventSource.close();
+  eventSource = new EventSource('/api/stream');
+  eventSource.onmessage = e => {
+    if (e.data === '[DONE]') {
+      eventSource.close();
+      setRunning(false);
+      loadResults();
+      return;
+    }
+    handleEvent(JSON.parse(e.data));
+  };
+  eventSource.onerror = () => { setRunning(false); };
+
+  // 실험 시작 요청
+  const res = await fetch('/api/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ conditions, tasks, provider, model, judge_model: judgeModel,
+                           no_judge: noJudge, temperature }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    addLog('err', `오류: ${err.error}`);
+    setRunning(false);
+  }
+}
+
+async function stopRun() {
+  await fetch('/api/stop', { method: 'POST' });
+  addLog('warn', '중단 요청 전송됨 — 현재 과제 완료 후 종료됩니다');
+}
+
+function setRunning(v) {
+  running = v;
+  document.getElementById('run-btn').disabled = v;
+  document.getElementById('stop-btn').disabled = !v;
+  const badge = document.getElementById('status-badge');
+  badge.className = v ? 'running' : '';
+  badge.textContent = v ? '실행 중...' : '대기 중';
+}
+
+// ── 로그 렌더링 ──────────────────────────────────────────────────────────────
+
+function clearLog() {
+  document.getElementById('log-container').innerHTML = '';
+  document.getElementById('summary-bar').classList.remove('visible');
+}
+
+function addLog(type, msg) {
+  const c = document.getElementById('log-container');
+  const now = new Date().toTimeString().slice(0,8);
+  let cls = 'log-msg';
+  if (type === 'task') cls = 'log-task';
+  else if (type === 'cond') cls = 'log-cond';
+  else if (type === 'score') cls = 'log-score';
+  else if (type === 'err') cls = 'log-err';
+  else if (type === 'done') cls = 'log-done';
+  else if (type === 'start') cls = 'log-start';
+  else if (type === 'warn') { cls = 'log-msg'; msg = `<span style="color:var(--warn)">${msg}</span>`; }
+
+  c.insertAdjacentHTML('beforeend', `
+    <div class="log-line">
+      <span class="log-ts">${now}</span>
+      <span class="${cls}">${msg}</span>
+    </div>
+  `);
+  c.scrollTop = c.scrollHeight;
+}
+
+function handleEvent(ev) {
+  const ts = ev.ts || '';
+  if (ev.type === 'start') {
+    addLog('start', `▶ 실험 시작 — ${ev.provider}/${ev.model}  조건:${ev.conditions.length}개  과제:${ev.tasks.length}개`);
+  } else if (ev.type === 'task_start') {
+    addLog('task', `\n[ ${ev.task_name} ]  (${ev.category})`);
+  } else if (ev.type === 'cond_start') {
+    addLog('cond', `  → ${ev.cond_name}`);
+  } else if (ev.type === 'cond_done') {
+    let msg = `     ${ev.elapsed}s | out:${ev.output_tokens}tok | ${ev.response_length}자`;
+    if (ev.avg_score != null) msg += ` | <span class="log-score">점수: ${ev.avg_score}</span>`;
+    if (ev.scores) {
+      const s = Object.entries(ev.scores).map(([k,v]) => `${k}:${v}`).join('  ');
+      msg += `\n     <span style="color:var(--muted);font-size:11px">${s}</span>`;
+    }
+    addLog('', msg);
+  } else if (ev.type === 'cond_error') {
+    addLog('err', `  ✗ ${ev.cond_key}: ${ev.error}`);
+  } else if (ev.type === 'summary') {
+    const bar = document.getElementById('summary-bar');
+    const chips = document.getElementById('sum-chips');
+    const scores = Object.entries(ev.summary)
+      .map(([k, v]) => ({k, name: ev.condition_names[k] || k, score: v.avg_score}))
+      .sort((a, b) => (b.score||0) - (a.score||0));
+    const top = scores[0]?.score;
+    chips.innerHTML = scores.map(s =>
+      `<span class="sum-chip${s.score === top ? ' top' : ''}">
+        ${s.name.replace(/ \(.*\)/, '')} <b>${s.score ?? '—'}</b>
+      </span>`
+    ).join('');
+    bar.classList.add('visible');
+  } else if (ev.type === 'done') {
+    addLog('done', `\n✓ 완료  →  ${ev.output}`);
+    document.getElementById('status-badge').textContent = '완료';
+    document.getElementById('status-badge').className = 'done';
+  } else if (ev.type === 'log') {
+    addLog('', ev.msg);
+  }
+}
+
+// ── 결과 히스토리 ─────────────────────────────────────────────────────────────
+
+async function loadResults() {
+  const res = await fetch('/api/results');
+  const list = await res.json();
+  const el = document.getElementById('results-list');
+  if (!list.length) { el.innerHTML = '<span style="color:var(--muted)">저장된 결과 없음</span>'; return; }
+  el.innerHTML = list.map(r => {
+    const scoreHtml = Object.entries(r.summary || {})
+      .sort((a,b) => (b[1]||0)-(a[1]||0))
+      .map(([k,v]) => `<span class="score-chip">${k} <span class="val">${v??'—'}</span></span>`)
+      .join('');
+    return `
+      <div class="result-card" onclick="showDetail('${r.filename}')">
+        <div class="result-meta">
+          <span class="result-ts">${r.timestamp}</span>
+          <span class="result-model">${r.provider || '?'} / ${r.model || '?'}</span>
+          ${r.conditions.map(c=>`<span class="badge muted">${c}</span>`).join('')}
+        </div>
+        <div class="score-row">${scoreHtml || '<span style="color:var(--muted);font-size:12px">no scores</span>'}</div>
+      </div>`;
+  }).join('');
+}
+
+async function showDetail(filename) {
+  const res = await fetch(`/api/results/${filename}`);
+  const data = await res.json();
+  const meta = data.meta || {};
+  document.getElementById('modal-title').textContent =
+    `${meta.timestamp}  —  ${meta.provider}/${meta.model}`;
+
+  const METRICS = ['correctness','efficiency','conciseness','no_overengineering',
+                   'response_bloat','instruction_following',
+                   'accuracy','completeness','no_overexplaining','actionability'];
+
+  let html = '';
+  for (const task of (data.tasks || [])) {
+    html += `<div class="task-block"><h3>${task.name}  <span style="color:var(--muted);font-weight:400">(${task.category})</span></h3>`;
+    for (const [ck, cd] of Object.entries(task.conditions || {})) {
+      const cname = meta.conditions?.[ck]?.name || ck;
+      const eval_ = cd.evaluation || {};
+      const scores = eval_.scores || {};
+      const avg = eval_.average;
+      const scoreHtml = Object.entries(scores)
+        .map(([m,v]) => `<span class="s-chip">${m.replace('no_','no_').replace('_',' ')} <span>${v}</span></span>`)
+        .join('');
+      html += `
+        <div class="cond-block">
+          <div class="cond-name">${cname}${avg != null ? `  <span style="color:var(--accent2)">avg ${avg}</span>` : ''}
+            <span style="color:var(--muted);font-weight:400;font-size:11px">
+              ${cd.response_length||0}자 / ${cd.elapsed||0}s / in:${cd.input_tokens||0} out:${cd.output_tokens||0}
+            </span>
+          </div>
+          <div class="scores-grid">${scoreHtml}</div>
+          <div class="response-box">${escHtml(cd.response||cd.error||'')}</div>
+        </div>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── 탭 ──────────────────────────────────────────────────────────────────────
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['log','results'][i] === name);
+  });
+  document.querySelectorAll('.tab-content').forEach((c,i) => {
+    c.classList.toggle('active', ['tab-log','tab-results'][i] === `tab-${name}`);
+  });
+  if (name === 'results') loadResults();
+}
+
+// ── 진입 ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
