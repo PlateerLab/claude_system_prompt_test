@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "timestamp": "20260408_105854",
+    "provider": "alibaba",
+    "model": "qwen3.5-27b",
+    "judge_model": null,
+    "temperature": 0.3,
+    "conditions": {
+      "raw": {
+        "name": "Raw (no system prompt)",
+        "description": "시스템 프롬프트 없음 — baseline"
+      }
+    }
+  },
+  "tasks": [
+    {
+      "id": "coding_group_by",
+      "name": "group_by function",
+      "category": "coding",
+      "conditions": {
+        "raw": {
+          "error": "{'message': \"You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY). \", 'type': 'invalid_request_error', 'param': None, 'code': None}"
+        }
+      }
+    }
+  ]
+}
